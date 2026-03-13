@@ -13,7 +13,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from landmarkdiff.inference import LandmarkDiffPipeline
-from landmarkdiff.landmarks import extract_landmarks, render_landmark_image, visualize_landmarks
+from landmarkdiff.landmarks import extract_landmarks, render_landmark_image
 from landmarkdiff.conditioning import generate_conditioning
 from landmarkdiff.manipulation import apply_procedure_preset
 from landmarkdiff.masking import generate_surgical_mask, mask_to_3channel
