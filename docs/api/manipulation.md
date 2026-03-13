@@ -4,20 +4,20 @@ Gaussian RBF landmark deformation for surgical simulation.
 
 ## Classes
 
-### `ControlHandle`
+### `DeformationHandle`
 
 A single deformation control point.
 
 **Attributes:**
-- `anchor_index` (int): MediaPipe landmark index (0-477)
+- `landmark_index` (int): MediaPipe landmark index (0-477)
 - `displacement` (np.ndarray): Movement vector `[dx, dy, dz]` in pixels
-- `radius` (float): Gaussian influence radius in pixels
+- `influence_radius` (float): Gaussian influence radius in pixels
 
 ## Constants
 
-### `PROCEDURE_PRESETS`
+### `PROCEDURE_LANDMARKS`
 
-Pre-defined control handle sets for supported procedures:
+Pre-defined landmark index sets for supported procedures:
 - `"rhinoplasty"` - nose reshaping
 - `"blepharoplasty"` - eyelid surgery
 - `"rhytidectomy"` - facelift
@@ -31,8 +31,8 @@ Apply Gaussian RBF deformation to landmarks.
 
 **Parameters:**
 - `landmarks` (FaceLandmarks): Input landmarks
-- `handles` (list[ControlHandle]): Deformation control handles
-- `intensity` (float): Deformation strength, 0.0 to 1.0
+- `handles` (list[DeformationHandle]): Deformation control handles
+- `intensity` (float): Deformation strength, 0 to 100
 
 **Returns:** New `FaceLandmarks` with deformed positions
 
@@ -43,15 +43,18 @@ Apply a named procedure preset.
 **Parameters:**
 - `landmarks` (FaceLandmarks): Input landmarks
 - `procedure` (str): One of `"rhinoplasty"`, `"blepharoplasty"`, `"rhytidectomy"`, `"orthognathic"`
-- `intensity` (float): Deformation strength, 0.0 to 1.0
+- `intensity` (float): Deformation strength, 0 to 100
 
 **Returns:** New `FaceLandmarks` with deformed positions
 
 **Example:**
 ```python
+import numpy as np
+from PIL import Image
 from landmarkdiff.landmarks import extract_landmarks
 from landmarkdiff.manipulation import apply_procedure_preset
 
-landmarks = extract_landmarks("face.jpg")
-deformed = apply_procedure_preset(landmarks, "rhinoplasty", intensity=0.6)
+img = np.array(Image.open("face.jpg").convert("RGB").resize((512, 512)))
+landmarks = extract_landmarks(img)
+deformed = apply_procedure_preset(landmarks, "rhinoplasty", intensity=60)
 ```

@@ -27,17 +27,17 @@ Detect depigmented skin patches using LAB color space analysis.
 
 Reduce mask intensity in vitiligo-affected regions to prevent color artifacts.
 
-### `disable_paralyzed_side(handles, side) -> list[ControlHandle]`
+### `disable_paralyzed_side(handles, side) -> list[DeformationHandle]`
 
-Remove control handles on the paralyzed side for Bell's palsy patients.
+Remove deformation handles on the paralyzed side for Bell's palsy patients.
 
 ### `soften_keloid_transitions(mask, sigma_multiplier=2.0) -> np.ndarray`
 
 Apply additional Gaussian blur to mask boundaries in keloid-prone regions.
 
-### `widen_influence_radii(handles, multiplier=1.5) -> list[ControlHandle]`
+### `widen_influence_radii(handles, multiplier=1.5) -> list[DeformationHandle]`
 
-Increase control handle radii for Ehlers-Danlos patients with hypermobile tissue.
+Increase deformation handle radii for Ehlers-Danlos patients with hypermobile tissue.
 
 ## Usage
 
@@ -45,7 +45,8 @@ Increase control handle radii for Ehlers-Danlos patients with hypermobile tissue
 from landmarkdiff.clinical import ClinicalFlags
 from landmarkdiff.inference import LandmarkDiffPipeline
 
-pipeline = LandmarkDiffPipeline.from_pretrained("checkpoints/latest")
+pipeline = LandmarkDiffPipeline(mode="controlnet", device="cuda")
+pipeline.load()
 
 flags = ClinicalFlags(
     vitiligo=True,
@@ -54,10 +55,11 @@ flags = ClinicalFlags(
     ehlers_danlos=False
 )
 
+img = np.array(Image.open("patient.jpg").convert("RGB").resize((512, 512)))
 result = pipeline.generate(
-    "patient.jpg",
+    img,
     procedure="rhinoplasty",
-    intensity=0.5,
+    intensity=60,
     clinical_flags=flags
 )
 ```

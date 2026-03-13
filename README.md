@@ -152,7 +152,7 @@ Each procedure preset defines a set of `DeformationHandle` objects, each specify
 
 The deformation is applied as a smooth, spatially weighted field. Landmarks near the handle move the most; landmarks far away are unaffected. This prevents the jarring discontinuities you get from simple point-to-point warping.
 
-All displacement magnitudes are scaled by the `intensity` parameter (0.0 to 1.0), so you can preview subtle through aggressive versions of the same procedure.
+All displacement magnitudes are scaled by the `intensity` parameter (0 to 100), so you can preview subtle through aggressive versions of the same procedure.
 
 ### Stage 3: Conditioning Generation
 
@@ -221,7 +221,7 @@ pip install -e ".[train,eval,app,dev]"
 ```bash
 python scripts/run_inference.py /path/to/face.jpg \
     --procedure rhinoplasty \
-    --intensity 0.6 \
+    --intensity 60 \
     --mode controlnet
 ```
 
@@ -237,7 +237,7 @@ This will:
 ```bash
 python examples/tps_only.py /path/to/face.jpg \
     --procedure rhinoplasty \
-    --intensity 0.6
+    --intensity 60
 ```
 
 TPS mode does pure geometric warping. It runs instantly on CPU and produces a geometrically accurate result, but without the photorealistic texture synthesis that the diffusion modes provide.
@@ -247,7 +247,7 @@ TPS mode does pure geometric warping. It runs instantly on CPU and produces a ge
 ```bash
 python examples/batch_inference.py /path/to/image_dir/ \
     --procedure blepharoplasty \
-    --intensity 0.5 \
+    --intensity 50 \
     --output output/batch/
 ```
 
@@ -281,7 +281,7 @@ pipeline.load()
 result = pipeline.generate(
     image,
     procedure="rhinoplasty",
-    intensity=0.6,
+    intensity=60,
     num_inference_steps=30,
     guidance_scale=7.5,
     controlnet_conditioning_scale=1.0,
@@ -482,7 +482,7 @@ flags = ClinicalFlags(
 result = pipeline.generate(
     image,
     procedure="rhinoplasty",
-    intensity=0.6,
+    intensity=60,
     clinical_flags=flags,
 )
 ```
@@ -526,7 +526,7 @@ landmarkdiff/                   # Core library
                                 #   Tessellation wireframe (2556 edges), adaptive
                                 #   Canny edge detection, generate_conditioning()
     manipulation.py             #   Gaussian RBF landmark deformation
-                                #   DeformationHandle, PROCEDURE_PRESETS,
+                                #   DeformationHandle, PROCEDURE_LANDMARKS,
                                 #   apply_procedure_preset(), clinical modifiers
     masking.py                  #   Feathered surgical mask generation
                                 #   Convex hull + dilation + Gaussian feather +
@@ -629,7 +629,7 @@ loss_weights:  # Phase B only
 
 | Parameter | Default | Range | Effect |
 |-----------|---------|-------|--------|
-| `intensity` | 0.6 | 0.0 - 1.0 | How aggressive the deformation is |
+| `intensity` | 60 | 0 - 100 | How aggressive the deformation is (percentage) |
 | `num_inference_steps` | 30 | 10 - 100 | Diffusion denoising steps (more = higher quality, slower) |
 | `guidance_scale` | 7.5 | 1.0 - 20.0 | Classifier-free guidance strength |
 | `controlnet_conditioning_scale` | 1.0 | 0.0 - 1.2 | How strongly the wireframe controls generation. Max 1.2 to avoid saturation |

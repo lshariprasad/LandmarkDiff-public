@@ -1,42 +1,65 @@
 """Example: define and apply a custom surgical procedure."""
 
 import numpy as np
+from PIL import Image
 
 from landmarkdiff.landmarks import extract_landmarks
-from landmarkdiff.manipulation import ControlHandle, gaussian_rbf_deform
-from landmarkdiff.conditioning import draw_tessellation
+from landmarkdiff.manipulation import DeformationHandle, gaussian_rbf_deform
+from landmarkdiff.conditioning import render_wireframe
 
 
 def main():
-    # Define a custom procedure: lip augmentation
-    lip_augmentation = [
-        # Upper lip - push forward and slightly up
-        ControlHandle(anchor_index=13, displacement=np.array([0, -3, -5]), radius=15.0),
-        ControlHandle(anchor_index=14, displacement=np.array([0, -3, -5]), radius=15.0),
-        ControlHandle(anchor_index=82, displacement=np.array([0, -2, -4]), radius=12.0),
-        ControlHandle(anchor_index=312, displacement=np.array([0, -2, -4]), radius=12.0),
-        # Lower lip - push forward and slightly down
-        ControlHandle(anchor_index=17, displacement=np.array([0, 2, -4]), radius=15.0),
-        ControlHandle(anchor_index=15, displacement=np.array([0, 2, -4]), radius=15.0),
-        # Lip corners - slight lift (vermilion border enhancement)
-        ControlHandle(anchor_index=61, displacement=np.array([0, -2, -2]), radius=10.0),
-        ControlHandle(anchor_index=291, displacement=np.array([0, -2, -2]), radius=10.0),
+    # define a custom procedure: lip augmentation
+    lip_handles = [
+        # upper lip - push forward and slightly up
+        DeformationHandle(landmark_index=13, displacement=np.array([0, -3, -5]), influence_radius=15.0),
+        DeformationHandle(landmark_index=14, displacement=np.array([0, -3, -5]), influence_radius=15.0),
+        DeformationHandle(landmark_index=82, displacement=np.array([0, -2, -4]), influence_radius=12.0),
+        DeformationHandle(landmark_index=312, displacement=np.array([0, -2, -4]), influence_radius=12.0),
+        # lower lip - push forward and slightly down
+        DeformationHandle(landmark_index=17, displacement=np.array([0, 2, -4]), influence_radius=15.0),
+        DeformationHandle(landmark_index=15, displacement=np.array([0, 2, -4]), influence_radius=15.0),
+        # lip corners - slight lift
+        DeformationHandle(landmark_index=61, displacement=np.array([0, -2, -2]), influence_radius=10.0),
+        DeformationHandle(landmark_index=291, displacement=np.array([0, -2, -2]), influence_radius=10.0),
     ]
 
-    # Apply to a face image
-    landmarks = extract_landmarks("face.jpg")
+    # load image and extract landmarks
+    img = Image.open("face.jpg").convert("RGB").resize((512, 512))
+    img_array = np.array(img)
+
+    landmarks = extract_landmarks(img_array)
     if landmarks is None:
-        print("No face detected. Please provide a face image as 'face.jpg'")
+        print("No face detected. Place a face image as 'face.jpg'")
         return
 
-    # Apply at different intensities
-    for intensity in [0.3, 0.6, 0.9]:
-        deformed = gaussian_rbf_deform(landmarks, lip_augmentation, intensity=intensity)
-        mesh = draw_tessellation(deformed, (512, 512))
+    # apply handles at different intensities
+    import cv2
+    for intensity in [30, 60, 90]:
+        scale = intensity / 100.0
+        deformed_pts = landmarks.landmarks.copy()
 
-        import cv2
-        cv2.imwrite(f"lip_augmentation_{int(intensity * 100)}.png", mesh)
-        print(f"Saved lip augmentation at {intensity:.0%} intensity")
+        # apply each handle with scaled displacement
+        for handle in lip_handles:
+            scaled_handle = DeformationHandle(
+                landmark_index=handle.landmark_index,
+                displacement=handle.displacement * scale,
+                influence_radius=handle.influence_radius,
+            )
+            deformed_pts = gaussian_rbf_deform(deformed_pts, scaled_handle)
+
+        # wrap back into FaceLandmarks for rendering
+        from landmarkdiff.landmarks import FaceLandmarks
+        deformed_face = FaceLandmarks(
+            landmarks=deformed_pts,
+            image_width=landmarks.image_width,
+            image_height=landmarks.image_height,
+            confidence=landmarks.confidence,
+        )
+
+        mesh = render_wireframe(deformed_face, (512, 512))
+        cv2.imwrite(f"lip_augmentation_{intensity}.png", mesh)
+        print(f"Saved lip augmentation at {intensity}% intensity")
 
 
 if __name__ == "__main__":

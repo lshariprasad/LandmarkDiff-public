@@ -1,44 +1,47 @@
 """Compare all procedures side-by-side on a single face."""
 
 import argparse
+import numpy as np
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from landmarkdiff.landmarks import extract_landmarks
-from landmarkdiff.manipulation import apply_procedure_preset, PROCEDURE_PRESETS
-from landmarkdiff.conditioning import draw_tessellation
+from landmarkdiff.manipulation import apply_procedure_preset, PROCEDURE_LANDMARKS
+from landmarkdiff.conditioning import render_wireframe
 
 
 def main():
     parser = argparse.ArgumentParser(description="Compare all procedures")
     parser.add_argument("image", type=str, help="Path to input face image")
-    parser.add_argument("--intensity", type=float, default=0.6)
+    parser.add_argument("--intensity", type=float, default=60.0,
+                        help="Deformation intensity (0-100)")
     parser.add_argument("--output", type=str, default="output/comparison.png")
     args = parser.parse_args()
 
-    landmarks = extract_landmarks(args.image)
+    img = Image.open(args.image).convert("RGB").resize((512, 512))
+    img_array = np.array(img)
+
+    landmarks = extract_landmarks(img_array)
     if landmarks is None:
         print("No face detected")
         return
 
-    procedures = list(PROCEDURE_PRESETS.keys())
+    procedures = list(PROCEDURE_LANDMARKS.keys())
     meshes = []
 
-    # Original
-    original_mesh = draw_tessellation(landmarks, (512, 512))
+    # original
+    original_mesh = render_wireframe(landmarks, (512, 512))
     meshes.append(("Original", Image.fromarray(original_mesh)))
 
-    # Each procedure
+    # each procedure
     for proc in procedures:
         deformed = apply_procedure_preset(landmarks, proc, intensity=args.intensity)
-        mesh = draw_tessellation(deformed, (512, 512))
+        mesh = render_wireframe(deformed, (512, 512))
         meshes.append((proc.capitalize(), Image.fromarray(mesh)))
 
-    # Create grid
+    # create grid
     n = len(meshes)
     grid = Image.new("L", (512 * n, 512 + 40), 0)
-
-    from PIL import ImageDraw
     draw = ImageDraw.Draw(grid)
 
     for i, (name, mesh) in enumerate(meshes):

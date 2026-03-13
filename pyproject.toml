@@ -48,6 +48,9 @@ dev = [
     "mypy>=1.8.0",
 ]
 
+[project.scripts]
+landmarkdiff = "landmarkdiff.__main__:main"
+
 [tool.setuptools.packages.find]
 include = ["landmarkdiff*"]
 

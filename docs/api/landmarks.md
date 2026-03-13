@@ -9,7 +9,7 @@ Face mesh extraction using MediaPipe Face Mesh v2.
 Dataclass holding 478-point facial landmark data.
 
 **Attributes:**
-- `points` (np.ndarray): Shape `(478, 3)` - x, y, z coordinates normalized to [0, 1]
+- `landmarks` (np.ndarray): Shape `(478, 3)` - x, y, z coordinates normalized to [0, 1]
 - `image_width` (int): Source image width
 - `image_height` (int): Source image height
 
@@ -46,7 +46,11 @@ Extract facial landmarks from an image.
 ```python
 from landmarkdiff.landmarks import extract_landmarks
 
-landmarks = extract_landmarks("photo.jpg")
-print(f"Detected {len(landmarks.points)} landmarks")
-print(f"Nose tip: {landmarks.points[4]}")
+import numpy as np
+from PIL import Image
+
+img = np.array(Image.open("photo.jpg").convert("RGB").resize((512, 512)))
+landmarks = extract_landmarks(img)
+print(f"Detected {len(landmarks.landmarks)} landmarks")
+print(f"Nose tip: {landmarks.landmarks[4]}")
 ```

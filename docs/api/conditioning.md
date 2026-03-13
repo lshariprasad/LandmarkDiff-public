@@ -4,7 +4,7 @@ ControlNet conditioning image generation.
 
 ## Functions
 
-### `draw_tessellation(landmarks, image_size) -> np.ndarray`
+### `render_wireframe(landmarks, image_size) -> np.ndarray`
 
 Render the 2556-edge MediaPipe Face Mesh tessellation as a wireframe image.
 

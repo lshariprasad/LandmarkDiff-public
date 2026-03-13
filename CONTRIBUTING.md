@@ -75,15 +75,23 @@ Thanks for your interest in contributing. This project is actively developed and
 
 To add a new surgical procedure:
 
-1. In `landmarkdiff/manipulation.py`, add control handles to `PROCEDURE_PRESETS`:
+1. In `landmarkdiff/manipulation.py`, add landmarks to `PROCEDURE_LANDMARKS` and a radius to `PROCEDURE_RADIUS`, then add the displacement logic in `_get_procedure_handles()`:
    ```python
-   "mentoplasty": [
-       ControlHandle(anchor_index=152, displacement=np.array([0, -8, 0]), radius=25.0),
-       # ... more handles for chin advancement/setback
-   ]
+   PROCEDURE_LANDMARKS["mentoplasty"] = [148, 152, 175, 377]
+   PROCEDURE_RADIUS["mentoplasty"] = 25.0
+   ```
+   Then in `_get_procedure_handles()`:
+   ```python
+   elif procedure == "mentoplasty":
+       for idx in indices:
+           handles.append(DeformationHandle(
+               landmark_index=idx,
+               displacement=np.array([0.0, 5.0 * scale, -8.0 * scale]),
+               influence_radius=radius,
+           ))
    ```
 
-2. Add the procedure name to the CLI choices in `scripts/run_inference.py`
+2. Add the procedure name to the CLI choices in `landmarkdiff/__main__.py`
 
 3. Add a test case in `tests/test_manipulation.py`
 

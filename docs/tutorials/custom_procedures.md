@@ -4,12 +4,12 @@ Define your own surgical procedure by specifying which landmarks to move and how
 
 ## How it works
 
-LandmarkDiff uses **Gaussian RBF (Radial Basis Function) deformation** to move facial landmarks. Each procedure is defined by a list of **control handles** - anchor points on the face that get displaced in a specific direction.
+LandmarkDiff uses **Gaussian RBF (Radial Basis Function) deformation** to move facial landmarks. Each procedure is defined by a list of **deformation handles** - anchor points on the face that get displaced in a specific direction.
 
-A control handle has three components:
-- **anchor_index**: Which MediaPipe landmark to move (0-477)
+A deformation handle has three components:
+- **landmark_index**: Which MediaPipe landmark to move (0-477)
 - **displacement**: Direction and magnitude of movement `[dx, dy, dz]` in pixels
-- **radius**: How far the influence spreads to neighboring landmarks
+- **influence_radius**: How far the influence spreads to neighboring landmarks
 
 ## Step 1: Identify landmarks
 
@@ -34,47 +34,45 @@ The MediaPipe Face Mesh provides 478 landmarks. Key regions:
 
 ```python
 import numpy as np
-from landmarkdiff.manipulation import ControlHandle
+from landmarkdiff.manipulation import DeformationHandle, gaussian_rbf_deform
 
 # Example: mentoplasty (chin advancement)
 mentoplasty_handles = [
     # Move chin tip forward and slightly down
-    ControlHandle(anchor_index=152, displacement=np.array([0, 5, -8]), radius=30.0),
+    DeformationHandle(landmark_index=152, displacement=np.array([0, 5, -8]), influence_radius=30.0),
     # Move lower chin forward
-    ControlHandle(anchor_index=175, displacement=np.array([0, 3, -6]), radius=25.0),
+    DeformationHandle(landmark_index=175, displacement=np.array([0, 3, -6]), influence_radius=25.0),
     # Adjust chin contour
-    ControlHandle(anchor_index=148, displacement=np.array([0, 2, -4]), radius=20.0),
-    ControlHandle(anchor_index=377, displacement=np.array([0, 2, -4]), radius=20.0),
+    DeformationHandle(landmark_index=148, displacement=np.array([0, 2, -4]), influence_radius=20.0),
+    DeformationHandle(landmark_index=377, displacement=np.array([0, 2, -4]), influence_radius=20.0),
 ]
 ```
 
 ## Step 3: Register the preset
 
-Add your procedure to `PROCEDURE_PRESETS` in `landmarkdiff/manipulation.py`:
+Add your procedure's landmark indices and radius to `PROCEDURE_LANDMARKS` and `PROCEDURE_RADIUS` in `landmarkdiff/manipulation.py`, then add the displacement logic in `_get_procedure_handles()`:
 
 ```python
-PROCEDURE_PRESETS = {
-    "rhinoplasty": [...],
-    "blepharoplasty": [...],
-    "rhytidectomy": [...],
-    "orthognathic": [...],
-    "mentoplasty": mentoplasty_handles,  # your new procedure
-}
+PROCEDURE_LANDMARKS["mentoplasty"] = [148, 152, 175, 377]
+PROCEDURE_RADIUS["mentoplasty"] = 25.0
 ```
 
 ## Step 4: Test it
 
 ```python
+import numpy as np
+from PIL import Image
 from landmarkdiff.landmarks import extract_landmarks
 from landmarkdiff.manipulation import apply_procedure_preset
+from landmarkdiff.conditioning import render_wireframe
 
-landmarks = extract_landmarks("face.jpg")
-deformed = apply_procedure_preset(landmarks, "mentoplasty", intensity=0.6)
+img = np.array(Image.open("face.jpg").convert("RGB").resize((512, 512)))
+landmarks = extract_landmarks(img)
+deformed = apply_procedure_preset(landmarks, "mentoplasty", intensity=60)
 
 # Visualize the deformation
-from landmarkdiff.conditioning import draw_tessellation
-original_mesh = draw_tessellation(landmarks, (512, 512))
-deformed_mesh = draw_tessellation(deformed, (512, 512))
+original_mesh = render_wireframe(landmarks, (512, 512))
+deformed_mesh = render_wireframe(deformed, (512, 512))
 ```
 
 ## Step 5: Add a test
@@ -84,10 +82,10 @@ In `tests/test_manipulation.py`:
 ```python
 def test_mentoplasty_preset():
     landmarks = create_dummy_landmarks()
-    result = apply_procedure_preset(landmarks, "mentoplasty", intensity=0.5)
+    result = apply_procedure_preset(landmarks, "mentoplasty", intensity=50)
     assert result is not None
     # Chin landmarks should have moved
-    assert not np.allclose(result.points[152], landmarks.points[152])
+    assert not np.allclose(result.landmarks[152], landmarks.landmarks[152])
 ```
 
 ## Tips
@@ -96,4 +94,4 @@ def test_mentoplasty_preset():
 - Use larger radii (25-40) for smooth, natural-looking deformations
 - Use smaller radii (10-15) for localized changes
 - Test with multiple face shapes - the same displacement can look different on different faces
-- The intensity parameter (0-1) scales all displacements linearly
+- The intensity parameter (0-100) scales all displacements linearly

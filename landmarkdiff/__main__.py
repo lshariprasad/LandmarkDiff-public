@@ -18,7 +18,8 @@ def main():
     infer.add_argument("image", type=str, help="Path to input face image")
     infer.add_argument("--procedure", type=str, default="rhinoplasty",
                        choices=["rhinoplasty", "blepharoplasty", "rhytidectomy", "orthognathic"])
-    infer.add_argument("--intensity", type=float, default=0.6)
+    infer.add_argument("--intensity", type=float, default=60.0,
+                       help="Deformation intensity (0-100)")
     infer.add_argument("--mode", type=str, default="tps",
                        choices=["tps", "controlnet", "img2img", "controlnet_ip"])
     infer.add_argument("--output", type=str, default="output/")
@@ -101,9 +102,11 @@ def _run_inference(args):
 def _run_landmarks(args):
     from pathlib import Path
     import numpy as np
+    from PIL import Image
     from landmarkdiff.landmarks import extract_landmarks, render_landmark_image
 
-    landmarks = extract_landmarks(args.image)
+    img = np.array(Image.open(args.image).convert("RGB").resize((512, 512)))
+    landmarks = extract_landmarks(img)
     if landmarks is None:
         print("no face detected")
         sys.exit(1)
