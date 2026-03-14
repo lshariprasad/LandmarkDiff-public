@@ -36,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# SLURM defaults for ACCRE cluster
+# SLURM defaults
 SLURM_DEFAULTS = {
     "partition": "batch_gpu",
     "account": os.environ.get("SLURM_ACCOUNT", "default_gpu"),
