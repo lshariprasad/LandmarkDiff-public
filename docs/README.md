@@ -1,7 +1,7 @@
 # Documentation
 
 ## Getting Started
-- [Installation](INSTALL.md) - Setup instructions for all platforms
+- [Installation](install.md) - Setup instructions for all platforms
 - [Quick Start](tutorials/quickstart.md) - Run your first prediction in 5 minutes
 - [GPU Training Guide](GPU_TRAINING_GUIDE.md) - HPC cluster setup
 

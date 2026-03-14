@@ -50,9 +50,10 @@ Thanks for your interest in contributing. This project is actively developed and
    - Type hints where practical
    - Tests for new functionality
 
-3. Run the linter and tests:
+3. Run the linter, type checker, and tests:
    ```bash
    ruff check landmarkdiff/ scripts/ tests/
+   mypy landmarkdiff/ --ignore-missing-imports
    pytest tests/
    ```
 
