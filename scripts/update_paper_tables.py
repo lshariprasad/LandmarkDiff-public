@@ -822,7 +822,9 @@ Examples:
         new_lines = tex.splitlines()
         print(f"  Original: {len(orig_lines)} lines")
         print(f"  Modified: {len(new_lines)} lines")
-        print(f"  Changed:  {sum(1 for a, b in zip(orig_lines, new_lines, strict=False) if a != b)} lines differ")
+        print(
+            f"  Changed:  {sum(1 for a, b in zip(orig_lines, new_lines, strict=False) if a != b)} lines differ"
+        )
         print()
         # Print the first few changed lines for inspection
         n_shown = 0

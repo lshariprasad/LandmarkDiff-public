@@ -869,7 +869,9 @@ def process_test_pair(
     cv2.imwrite(str(pair_dir / "ensemble_output.png"), ensemble_composited)
 
     # Save individual seed outputs
-    for i, (composited, seed) in enumerate(zip(individual_composited, ensemble_result["seeds"], strict=False)):
+    for i, (composited, seed) in enumerate(
+        zip(individual_composited, ensemble_result["seeds"], strict=False)
+    ):
         cv2.imwrite(str(pair_dir / f"seed_{seed:05d}.png"), composited)
 
     # Save input and conditioning for reference

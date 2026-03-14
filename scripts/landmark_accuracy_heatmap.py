@@ -260,7 +260,6 @@ def _get_canonical_positions(n_landmarks: int) -> np.ndarray:
     # Use MediaPipe's canonical face mesh coordinates
     # These are normalized [0, 1] positions
     try:
-
         # Create a frontal face image to extract canonical positions
         # Use a gray image and get default positions
         # Actually, we can use the canonical mesh directly
