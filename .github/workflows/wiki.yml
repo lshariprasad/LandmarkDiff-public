@@ -12,21 +12,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Clone wiki repo (GITHUB_TOKEN has wiki access)
-          git clone https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git wiki-dir || {
-            mkdir wiki-dir
-            cd wiki-dir
-            git init
-            git remote add origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git
-          }
+          mkdir -p wiki-dir
           cd wiki-dir
+          git init
+          git remote add origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git
           
-          # Copy wiki pages from docs/wiki/ in the main repo  
-          cp ../docs/wiki/*.md . 2>/dev/null || true
+          # Copy wiki pages from docs/wiki/ in the main repo
+          cp ../docs/wiki/*.md .
           
           git config user.name "dreamlessx"
           git config user.email "dreamlessx@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || git commit -m "update wiki pages"
+          git commit -m "add comprehensive wiki documentation"
           git branch -M master
           git push -u origin master --force
