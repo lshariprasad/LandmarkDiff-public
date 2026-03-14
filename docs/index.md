@@ -17,26 +17,44 @@ It works by extracting MediaPipe's 478-point face mesh from the input photo, app
 
 ---
 
+## Quick Links
+
+- [Quickstart notebook](../examples/quickstart.ipynb) -- load the pipeline, run predictions, compare procedures
+- [CHANGELOG](../CHANGELOG.md) -- what changed between releases
+- [Wiki](https://github.com/dreamlessx/LandmarkDiff-public/wiki) -- extended guides, FAQ, architecture notes
+- [API reference](api/) -- per-module documentation
+
+---
+
 ## Table of Contents
 
+**Getting started**
 - [Why LandmarkDiff](#why-landmarkdiff)
-- [Supported Procedures](#supported-procedures)
-- [How It Works](#how-it-works)
-- [Demo Outputs](#demo-outputs)
 - [Quick Start](#quick-start)
 - [Inference Modes](#inference-modes)
 - [Gradio Web Demo](#gradio-web-demo)
-- [Training](#training)
-- [Evaluation and Metrics](#evaluation-and-metrics)
+
+**Core pipeline**
+- [Supported Procedures](#supported-procedures)
+- [How It Works](#how-it-works)
 - [Clinical Edge Cases](#clinical-edge-cases)
 - [Post-Processing Pipeline](#post-processing-pipeline)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
+
+**Training and evaluation**
+- [Training](#training)
+- [Evaluation and Metrics](#evaluation-and-metrics)
 - [Benchmarks](#benchmarks)
 - [Model Zoo](#model-zoo)
+
+**Reference**
+- [Demo Outputs](#demo-outputs)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
 - [Requirements](#requirements)
 - [Docker](#docker)
 - [Roadmap](#roadmap)
+
+**Community**
 - [Citation](#citation)
 - [Contributors](#contributors)
 - [Contributing](#contributing)
