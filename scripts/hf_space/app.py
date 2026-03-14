@@ -90,7 +90,10 @@ def process_image(image_rgb, procedure, intensity):
 
     if face is None:
         return (
-            image_rgb_512, image_rgb_512, image_rgb_512, image_rgb_512,
+            image_rgb_512,
+            image_rgb_512,
+            image_rgb_512,
+            image_rgb_512,
             "No face detected. Try a clearer, well-lit frontal photo.",
         )
 
@@ -106,9 +109,7 @@ def process_image(image_rgb, procedure, intensity):
         composited = mask_composite(warped, image_bgr, mask)
         composited_rgb = cv2.cvtColor(composited, cv2.COLOR_BGR2RGB)
 
-        displacement = np.mean(
-            np.linalg.norm(manipulated.pixel_coords - face.pixel_coords, axis=1)
-        )
+        displacement = np.mean(np.linalg.norm(manipulated.pixel_coords - face.pixel_coords, axis=1))
         elapsed = time.monotonic() - t0
 
         info = (
@@ -186,8 +187,7 @@ def intensity_sweep(image_rgb, procedure):
 # ---------------------------------------------------------------------------
 
 _proc_table = "\n".join(
-    f"| {name.replace('_', ' ').title()} | {desc} |"
-    for name, desc in PROCEDURE_INFO.items()
+    f"| {name.replace('_', ' ').title()} | {desc} |" for name, desc in PROCEDURE_INFO.items()
 )
 
 with gr.Blocks(
@@ -210,10 +210,16 @@ with gr.Blocks(
             with gr.Column(scale=1):
                 input_image = gr.Image(label="Face Photo", type="numpy", height=350)
                 procedure = gr.Radio(
-                    choices=PROCEDURES, value="rhinoplasty", label="Procedure",
+                    choices=PROCEDURES,
+                    value="rhinoplasty",
+                    label="Procedure",
                 )
                 intensity = gr.Slider(
-                    0, 100, 50, step=1, label="Intensity (%)",
+                    0,
+                    100,
+                    50,
+                    step=1,
+                    label="Intensity (%)",
                     info="0 = no change, 100 = maximum",
                 )
                 run_btn = gr.Button("Generate", variant="primary", size="lg")
@@ -265,7 +271,8 @@ with gr.Blocks(
         if EXAMPLE_IMAGES:
             gr.Examples(
                 examples=[[str(p)] for p in EXAMPLE_IMAGES],
-                inputs=[cmp_image], label="Examples",
+                inputs=[cmp_image],
+                label="Examples",
             )
 
         cmp_btn.click(fn=compare_procedures, inputs=[cmp_image, cmp_intensity], outputs=cmp_outputs)
@@ -284,7 +291,8 @@ with gr.Blocks(
         if EXAMPLE_IMAGES:
             gr.Examples(
                 examples=[[str(p)] for p in EXAMPLE_IMAGES],
-                inputs=[sweep_image], label="Examples",
+                inputs=[sweep_image],
+                label="Examples",
             )
 
         sweep_btn.click(
