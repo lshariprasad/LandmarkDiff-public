@@ -1,0 +1,31 @@
+name: Initialize Wiki
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  init-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize and populate wiki
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+          CLONE_URL="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git"
+          
+          mkdir wiki-init && cd wiki-init
+          git init
+          git config user.name "dreamlessx"
+          git config user.email "dreamlessx@users.noreply.github.com"
+          
+          # Copy all wiki pages from docs/wiki/
+          cp ../docs/wiki/*.md .
+          
+          git add -A
+          git commit -m "Initialize wiki with comprehensive documentation"
+          git remote add origin "$CLONE_URL"
+          git branch -M master
+          git push -u origin master
+          echo "Wiki initialized and populated!"
