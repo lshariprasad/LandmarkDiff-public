@@ -22,28 +22,33 @@ Pre-defined landmark index sets for supported procedures:
 - `"blepharoplasty"` - eyelid surgery
 - `"rhytidectomy"` - facelift
 - `"orthognathic"` - jaw surgery
+- `"brow_lift"` - brow elevation
+- `"mentoplasty"` - chin surgery
 
 ## Functions
 
-### `gaussian_rbf_deform(landmarks, handles, intensity=1.0) -> FaceLandmarks`
+### `gaussian_rbf_deform(landmarks, handle) -> np.ndarray`
 
-Apply Gaussian RBF deformation to landmarks.
+Apply a single Gaussian RBF deformation handle to a landmark array.
 
 **Parameters:**
-- `landmarks` (FaceLandmarks): Input landmarks
-- `handles` (list[DeformationHandle]): Deformation control handles
-- `intensity` (float): Deformation strength, 0 to 100
+- `landmarks` (np.ndarray): Landmark coordinates, shape `(478, 2)` or `(478, 3)`
+- `handle` (DeformationHandle): Single deformation control handle
 
-**Returns:** New `FaceLandmarks` with deformed positions
+**Returns:** New `np.ndarray` with deformed positions (copy of input)
 
-### `apply_procedure_preset(landmarks, procedure, intensity=1.0) -> FaceLandmarks`
+### `apply_procedure_preset(face, procedure, intensity=50.0, ...) -> FaceLandmarks`
 
 Apply a named procedure preset.
 
 **Parameters:**
-- `landmarks` (FaceLandmarks): Input landmarks
-- `procedure` (str): One of `"rhinoplasty"`, `"blepharoplasty"`, `"rhytidectomy"`, `"orthognathic"`
-- `intensity` (float): Deformation strength, 0 to 100
+- `face` (FaceLandmarks): Input face landmarks
+- `procedure` (str): One of `"rhinoplasty"`, `"blepharoplasty"`, `"rhytidectomy"`, `"orthognathic"`, `"brow_lift"`, `"mentoplasty"`
+- `intensity` (float): Deformation strength, 0 to 100 (default: 50.0)
+- `image_size` (int): Reference image size for displacement scaling (default: 512)
+- `clinical_flags` (ClinicalFlags | None): Clinical edge case flags (default: None)
+- `displacement_model_path` (str | None): Path to data-driven displacement model (default: None)
+- `noise_scale` (float): Random noise added to displacements (default: 0.0)
 
 **Returns:** New `FaceLandmarks` with deformed positions
 

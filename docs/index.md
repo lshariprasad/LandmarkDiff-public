@@ -88,7 +88,7 @@ Targets 47 landmarks across the mandible, maxilla, and chin. Deformations simula
 
 ### Adding Your Own Procedure
 
-You can define custom procedures by specifying which landmarks to move, how far, and in what direction. See [docs/tutorials/custom_procedures.md](docs/tutorials/custom_procedures.md) for a step-by-step guide.
+You can define custom procedures by specifying which landmarks to move, how far, and in what direction. See [tutorials/custom_procedures.md](tutorials/custom_procedures.md) for a step-by-step guide.
 
 ---
 
@@ -684,7 +684,7 @@ python benchmarks/benchmark_training.py --device cuda --num_steps 100
 
 ## Model Zoo
 
-See [MODEL_ZOO.md](MODEL_ZOO.md) for the full list of required and optional models.
+See [MODEL_ZOO.md](../MODEL_ZOO.md) for the full list of required and optional models.
 
 **Base models (auto-downloaded on first run):**
 - [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5) - ~4 GB
@@ -829,13 +829,13 @@ We track all contributions and contributors will be acknowledged in the MICCAI 2
 |---|---|
 | [@dreamlessx](https://github.com/dreamlessx) | Core architecture, training pipeline, paper |
 
-To join this list, open a PR or contribute to an issue. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+To join this list, open a PR or contribute to an issue. See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide, including development setup, coding style, testing requirements, and how to add new procedures.
+Contributions welcome. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full guide, including development setup, coding style, testing requirements, and how to add new procedures.
 
 For bug reports and feature requests, use the [issue templates](https://github.com/dreamlessx/LandmarkDiff-public/issues/new/choose).
 

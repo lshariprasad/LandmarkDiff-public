@@ -14,13 +14,12 @@ Render the 2556-edge MediaPipe Face Mesh tessellation as a wireframe image.
 
 **Returns:** Grayscale wireframe image (np.ndarray, uint8)
 
-### `auto_canny(image, sigma=0.33) -> np.ndarray`
+### `auto_canny(image) -> np.ndarray`
 
-Compute Canny edge map with automatic threshold selection adapted to skin tone.
+Compute Canny edge map with automatic threshold selection adapted to skin tone. Thresholds are derived from the image median (low = 0.66 * median, high = 1.33 * median).
 
 **Parameters:**
 - `image` (np.ndarray): Input image (BGR)
-- `sigma` (float): Threshold sensitivity
 
 **Returns:** Binary edge map (np.ndarray, uint8)
 

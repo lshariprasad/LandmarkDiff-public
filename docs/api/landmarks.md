@@ -32,15 +32,16 @@ Dataclass holding 478-point facial landmark data.
 
 ## Functions
 
-### `extract_landmarks(image, max_faces=1) -> FaceLandmarks`
+### `extract_landmarks(image, min_detection_confidence=0.5, min_tracking_confidence=0.5) -> FaceLandmarks | None`
 
-Extract facial landmarks from an image.
+Extract facial landmarks from an image using MediaPipe Face Mesh.
 
 **Parameters:**
-- `image` (str | Path | np.ndarray | PIL.Image): Input face image
-- `max_faces` (int): Maximum number of faces to detect (default: 1)
+- `image` (np.ndarray): Input face image (BGR numpy array)
+- `min_detection_confidence` (float): Minimum detection confidence (default: 0.5)
+- `min_tracking_confidence` (float): Minimum tracking confidence (default: 0.5)
 
-**Returns:** `FaceLandmarks` object or `None` if no face detected
+**Returns:** `FaceLandmarks` object, or `None` if no face detected
 
 **Example:**
 ```python
