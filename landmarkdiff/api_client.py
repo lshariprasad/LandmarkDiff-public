@@ -42,8 +42,8 @@ class PredictionResult:
     procedure: str
     intensity: float
     confidence: float = 0.0
-    landmarks_before: list | None = None
-    landmarks_after: list | None = None
+    landmarks_before: list[Any] | None = None
+    landmarks_after: list[Any] | None = None
     metrics: dict[str, float] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -71,7 +71,7 @@ class LandmarkDiffClient:
         self.timeout = timeout
         self._session = None
 
-    def _get_session(self):
+    def _get_session(self) -> Any:
         """Lazy-initialize requests session."""
         if self._session is None:
             try:
@@ -233,10 +233,10 @@ class LandmarkDiffClient:
             self._session.close()
             self._session = None
 
-    def __enter__(self):
+    def __enter__(self) -> LandmarkDiffClient:
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         self.close()
 
     def __repr__(self) -> str:

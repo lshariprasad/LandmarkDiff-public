@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -29,7 +30,7 @@ except ImportError:
     HAS_TORCH = False
 
 
-def _load_inception_v3():
+def _load_inception_v3() -> Any:
     """Load InceptionV3 with pool3 features (2048-dim)."""
     from torchvision.models import Inception_V3_Weights, inception_v3
 
@@ -52,10 +53,10 @@ class ImageFolderDataset(Dataset):
         )
         self.image_size = image_size
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.files)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Any:
         import cv2
 
         img = cv2.imread(str(self.files[idx]))
@@ -77,10 +78,10 @@ class NumpyArrayDataset(Dataset):
         self.images = images
         self.image_size = image_size
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.images)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Any:
         import cv2
 
         img = self.images[idx]

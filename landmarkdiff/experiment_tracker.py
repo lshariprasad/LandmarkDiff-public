@@ -87,7 +87,7 @@ class ExperimentTracker:
         self._save_index()
 
         # Create metrics log file
-        metrics_path = self.dir / exp["metrics_file"]
+        metrics_path = self.dir / str(exp["metrics_file"])
         metrics_path.touch()
 
         print(f"Experiment started: {exp_id} ({name})")
@@ -105,7 +105,7 @@ class ExperimentTracker:
             **metrics,
         }
 
-        metrics_path = self.dir / exp["metrics_file"]
+        metrics_path = self.dir / str(exp["metrics_file"])
         with open(metrics_path, "a") as f:
             f.write(json.dumps(entry) + "\n")
 
@@ -134,7 +134,7 @@ class ExperimentTracker:
         if not exp:
             return []
 
-        metrics_path = self.dir / exp["metrics_file"]
+        metrics_path = self.dir / str(exp["metrics_file"])
         if not metrics_path.exists():
             return []
 

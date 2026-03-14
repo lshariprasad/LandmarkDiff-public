@@ -78,7 +78,7 @@ class MetricsVisualizer:
         self.dpi = dpi
         self.style = style
 
-    def _get_plt(self):
+    def _get_plt(self) -> Any:
         """Import matplotlib with configuration."""
         import matplotlib
 

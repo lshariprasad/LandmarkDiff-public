@@ -241,7 +241,7 @@ class ExperimentConfig:
         return asdict(self)
 
 
-def _from_dict(cls, d: dict):
+def _from_dict(cls: type, d: dict) -> Any:
     """Create a dataclass from a dict, ignoring unknown keys."""
     import dataclasses
 
@@ -258,7 +258,7 @@ def _from_dict(cls, d: dict):
     return cls(**filtered)
 
 
-def _convert_tuples(obj):
+def _convert_tuples(obj: Any) -> Any:
     """Recursively convert tuples to lists for YAML serialization."""
     if isinstance(obj, dict):
         return {k: _convert_tuples(v) for k, v in obj.items()}

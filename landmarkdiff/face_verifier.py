@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -429,7 +430,7 @@ def analyze_distortions(image: np.ndarray) -> DistortionReport:
 _FACE_QUALITY_NET = None
 
 
-def _get_face_quality_scorer():
+def _get_face_quality_scorer() -> Any:
     """Get or create singleton face quality assessment model.
 
     Uses FaceXLib's quality scorer or falls back to BRISQUE-style features.
@@ -671,7 +672,7 @@ def _fix_lighting(image: np.ndarray) -> np.ndarray:
 _ARCFACE_APP = None
 
 
-def _get_arcface():
+def _get_arcface() -> Any:
     """Get or create singleton ArcFace model."""
     global _ARCFACE_APP
     if _ARCFACE_APP is not None:

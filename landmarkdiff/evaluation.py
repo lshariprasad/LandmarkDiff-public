@@ -8,6 +8,7 @@ Secondary: SSIM (relaxed target >0.80).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -203,7 +204,7 @@ _LPIPS_FN = None
 _ARCFACE_APP = None
 
 
-def _get_lpips_fn():
+def _get_lpips_fn() -> Any:
     """Get or create singleton LPIPS model."""
     global _LPIPS_FN
     if _LPIPS_FN is None:
