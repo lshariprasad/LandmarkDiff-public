@@ -14,8 +14,15 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-# Ensure benchmarks directory is importable
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "benchmarks"))
+# Ensure benchmarks directory is importable (must come before scripts/ on path).
+# Clear any cached modules from scripts/ that share names with benchmarks/.
+_benchmarks_dir = str(Path(__file__).resolve().parent.parent / "benchmarks")
+sys.path.insert(0, _benchmarks_dir)
+for _mod in ("benchmark_inference", "benchmark_landmarks", "benchmark_training"):
+    if _mod in sys.modules:
+        _existing = getattr(sys.modules[_mod], "__file__", "") or ""
+        if "benchmarks" not in _existing:
+            del sys.modules[_mod]
 
 
 # ---------------------------------------------------------------------------

@@ -99,7 +99,9 @@ def run_benchmark(args: argparse.Namespace) -> dict | None:
         start = time.perf_counter()
 
         # Simulate forward pass tensors
-        latents = torch.randn(latent_shape, device=device, dtype=dtype)
+        latents = torch.randn(
+            latent_shape, device=device, dtype=dtype, requires_grad=True
+        )
         _cond = torch.randn(cond_shape, device=device, dtype=dtype)
         noise = torch.randn_like(latents)
 
