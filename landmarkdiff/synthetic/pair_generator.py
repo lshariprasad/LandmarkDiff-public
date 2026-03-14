@@ -1,7 +1,10 @@
-"""Synthetic pair generator for ControlNet fine-tuning.
+"""Synthetic training pair generator.
 
-FFHQ -> landmarks -> random FFD -> conditioning + mask -> augment input.
-Augmentations on INPUT only, never target.
+Creates (input, conditioning, mask, target) tuples for ControlNet fine-tuning.
+Pipeline: FFHQ image -> extract landmarks -> random FFD manipulation ->
+generate conditioning + mask -> apply clinical augmentation to input.
+
+Augmentations are applied to INPUT only, never to target (ground truth).
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ import numpy as np
 from landmarkdiff.conditioning import generate_conditioning
 from landmarkdiff.landmarks import extract_landmarks, render_landmark_image
 from landmarkdiff.manipulation import (
+    PROCEDURE_LANDMARKS,
     apply_procedure_preset,
 )
 from landmarkdiff.masking import generate_surgical_mask
@@ -28,7 +32,7 @@ class TrainingPair:
     """A single training sample for ControlNet fine-tuning."""
 
     input_image: np.ndarray  # augmented input (512x512 BGR)
-    target_image: np.ndarray  # clean target (512x512 BGR) - TPS-warped original
+    target_image: np.ndarray  # clean target (512x512 BGR) -- TPS-warped original
     conditioning: np.ndarray  # landmark rendering (512x512 BGR)
     canny: np.ndarray  # canny edge map (512x512 grayscale)
     mask: np.ndarray  # feathered surgical mask (512x512 float32)
@@ -36,7 +40,7 @@ class TrainingPair:
     intensity: float
 
 
-PROCEDURES = ["rhinoplasty", "blepharoplasty", "rhytidectomy", "orthognathic"]
+PROCEDURES = list(PROCEDURE_LANDMARKS.keys())
 
 
 def generate_pair(
@@ -46,7 +50,18 @@ def generate_pair(
     target_size: int = 512,
     rng: np.random.Generator | None = None,
 ) -> TrainingPair | None:
-    """Generate a single training pair from a face image."""
+    """Generate a single training pair from a face image.
+
+    Args:
+        image: BGR input image (any size).
+        procedure: Procedure type (random if None).
+        intensity: Manipulation intensity 0-100 (random 30-90 if None).
+        target_size: Output resolution.
+        rng: Random number generator.
+
+    Returns:
+        TrainingPair or None if face detection fails.
+    """
     rng = rng or np.random.default_rng()
 
     # Resize to target
@@ -97,8 +112,22 @@ def generate_pairs_from_directory(
     num_pairs: int = 1000,
     target_size: int = 512,
     seed: int = 42,
+    quality_check: bool = True,
+    min_quality: float = 45.0,
 ) -> Iterator[TrainingPair]:
-    """Generate training pairs from a directory of face images."""
+    """Generate training pairs from a directory of face images.
+
+    Args:
+        image_dir: Directory containing face images.
+        num_pairs: Total number of pairs to generate.
+        target_size: Output resolution.
+        seed: Random seed.
+        quality_check: Run face verifier quality check on source images.
+        min_quality: Minimum quality score to use image (0-100).
+
+    Yields:
+        TrainingPair instances.
+    """
     rng = np.random.default_rng(seed)
     image_dir = Path(image_dir)
 
@@ -107,6 +136,10 @@ def generate_pairs_from_directory(
 
     if not image_files:
         raise FileNotFoundError(f"No images found in {image_dir}")
+
+    # Optional quality pre-filter
+    _quality_cache: dict[str, float] = {}
+    quality_rejects = 0
 
     generated = 0
     consecutive_failures = 0
@@ -123,6 +156,28 @@ def generate_pairs_from_directory(
                 break
             continue
 
+        # Quality gate: reject low-quality source images before pair generation
+        if quality_check:
+            cache_key = str(img_path)
+            if cache_key not in _quality_cache:
+                try:
+                    from landmarkdiff.face_verifier import analyze_distortions
+
+                    resized = cv2.resize(image, (target_size, target_size))
+                    report = analyze_distortions(resized)
+                    _quality_cache[cache_key] = report.quality_score
+                except Exception:
+                    _quality_cache[cache_key] = 100.0  # Can't check -- allow through
+
+            if _quality_cache[cache_key] < min_quality:
+                quality_rejects += 1
+                if quality_rejects % 100 == 0:
+                    print(f"  Quality filter: {quality_rejects} images rejected so far")
+                consecutive_failures += 1
+                if consecutive_failures > len(image_files):
+                    break
+                continue
+
         pair = generate_pair(image, target_size=target_size, rng=rng)
         if pair is not None:
             yield pair
@@ -133,6 +188,9 @@ def generate_pairs_from_directory(
             if consecutive_failures > len(image_files):
                 print(f"Warning: {consecutive_failures} consecutive failures, stopping early")
                 break
+
+    if quality_rejects > 0:
+        print(f"Quality filter: rejected {quality_rejects} low-quality source images")
 
 
 def save_pair(pair: TrainingPair, output_dir: Path, index: int) -> None:

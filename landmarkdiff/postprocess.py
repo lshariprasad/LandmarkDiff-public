@@ -17,9 +17,9 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-# Singleton model caches — load once, reuse across calls
+# Singleton model caches -- load once, reuse across calls
 _CODEFORMER_MODEL = None
-_CODEFORMER_HELPER = None
+_GFPGAN_HELPER = None
 _REALESRGAN_UPSAMPLER = None
 _ARCFACE_APP = None
 
@@ -184,17 +184,17 @@ def restore_face_gfpgan(
         return image
 
     try:
-        global _CODEFORMER_HELPER
+        global _GFPGAN_HELPER
         # Singleton: avoid reloading ~300MB GFPGAN model on every call
-        if _CODEFORMER_HELPER is None:
-            _CODEFORMER_HELPER = GFPGANer(
+        if _GFPGAN_HELPER is None:
+            _GFPGAN_HELPER = GFPGANer(
                 model_path="https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth",
                 upscale=upscale,
                 arch="clean",
                 channel_multiplier=2,
                 bg_upsampler=None,
             )
-        _, _, restored = _CODEFORMER_HELPER.enhance(
+        _, _, restored = _GFPGAN_HELPER.enhance(
             image,
             has_aligned=False,
             only_center_face=True,
@@ -238,7 +238,7 @@ def restore_face_codeformer(
         return image
 
     try:
-        global _CODEFORMER_MODEL, _CODEFORMER_HELPER
+        global _CODEFORMER_MODEL
         from codeformer.basicsr.archs.codeformer_arch import CodeFormer as CodeFormerArch
         from codeformer.inference_codeformer import set_realesrgan as _unused  # noqa: F401
 
@@ -350,8 +350,10 @@ def enhance_background_realesrgan(
         mask_3ch = np.stack([mask_f] * 3, axis=-1) if mask_f.ndim == 2 else mask_f
 
         # Keep face region from original, use enhanced for background
-        result = (
-            image.astype(np.float32) * mask_3ch + enhanced.astype(np.float32) * (1.0 - mask_3ch)
+        result = np.clip(
+            image.astype(np.float32) * mask_3ch + enhanced.astype(np.float32) * (1.0 - mask_3ch),
+            0,
+            255,
         ).astype(np.uint8)
         return result
     except Exception:
@@ -460,12 +462,15 @@ def histogram_match_skin(
     Returns:
         Color-matched BGR image.
     """
-    mask_bool = mask > 0.3 if mask.dtype == np.float32 else mask > 76
+    # Ensure 2D mask for per-channel indexing
+    m = mask
+    if m.ndim == 3:
+        m = m[:, :, 0]
+    mask_bool = m > 0.3 if m.dtype == np.float32 else m > 76
 
     if not np.any(mask_bool):
         return source
 
-    source.copy()
     src_lab = cv2.cvtColor(source, cv2.COLOR_BGR2LAB).astype(np.float32)
     ref_lab = cv2.cvtColor(reference, cv2.COLOR_BGR2LAB).astype(np.float32)
 

@@ -87,8 +87,10 @@ def warp_image_tps(
         rigid_translation = _compute_rigid_translation(src_pts, dst_pts, rigid_mask, w, h)
         rigid_warped = _apply_rigid_translation(image, rigid_translation)
 
+        # Translate the mask to match the rigidly-shifted content
+        translated_mask = _apply_rigid_translation(rigid_mask, rigid_translation)
         # Composite: use rigid warp in rigid regions, TPS elsewhere
-        mask_f = rigid_mask.astype(np.float32)
+        mask_f = translated_mask.astype(np.float32)
         if len(mask_f.shape) == 2:
             mask_f = np.stack([mask_f] * 3, axis=-1)
         mask_f = mask_f / 255.0 if mask_f.max() > 1 else mask_f
