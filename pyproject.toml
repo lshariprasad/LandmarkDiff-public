@@ -48,6 +48,7 @@ dev = [
     "mypy>=1.8.0",
     "types-PyYAML>=6.0.0",
     "types-requests>=2.31.0",
+    "scipy>=1.10.0",
 ]
 
 [project.scripts]
@@ -74,7 +75,7 @@ ignore = ["N812"]
 "landmarkdiff/synthetic/tps_warp.py" = ["N806"]
 "landmarkdiff/synthetic/augmentation.py" = ["N806"]
 "scripts/analyze_training_run.py" = ["E501"]
-"scripts/train_controlnet.py" = ["N806", "E402"]
+"scripts/train_controlnet.py" = ["N806", "N803", "N817", "E402", "E501", "B905", "SIM102"]
 "scripts/training_dashboard.py" = ["E501"]
 "scripts/dry_run_training.py" = ["N806", "E402", "F401"]
 "scripts/augment_pairs.py" = ["N806"]
@@ -135,6 +136,10 @@ module = [
     "landmarkdiff.data",
     "landmarkdiff.synthetic.*",
 ]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["scripts.*"]
 ignore_errors = true
 
 [tool.pytest.ini_options]

@@ -88,9 +88,7 @@ def cmd_evaluate(args: argparse.Namespace) -> None:
     run_evaluation(
         test_dir=args.test_dir,
         output_dir=args.output,
-        mode=args.mode,
         checkpoint=args.checkpoint,
-        displacement_model=args.displacement_model,
         max_samples=args.max_samples,
     )
 

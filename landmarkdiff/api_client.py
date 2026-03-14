@@ -69,7 +69,7 @@ class LandmarkDiffClient:
     def __init__(self, base_url: str = "http://localhost:8000", timeout: float = 60.0) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._session = None
+        self._session: Any = None
 
     def _get_session(self) -> Any:
         """Lazy-initialize requests session."""
