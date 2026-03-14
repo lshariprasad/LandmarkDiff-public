@@ -1,10 +1,11 @@
 # LandmarkDiff
 
 [![CI](https://github.com/dreamlessx/LandmarkDiff-public/actions/workflows/ci.yml/badge.svg)](https://github.com/dreamlessx/LandmarkDiff-public/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/landmarkdiff.svg)](https://pypi.org/project/landmarkdiff/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10 | 3.11 | 3.12](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/pytorch-2.1+-ee4c2c.svg)](https://pytorch.org/)
-[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97-Demo-yellow)](https://huggingface.co/spaces/dreamlessx/LandmarkDiff)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-yellow)](https://huggingface.co/spaces/dreamlessx/LandmarkDiff)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 Photorealistic facial surgery outcome prediction from standard clinical photography, powered by anatomically-conditioned latent diffusion.
@@ -31,8 +32,10 @@ Photorealistic facial surgery outcome prediction from standard clinical photogra
 LandmarkDiff extracts MediaPipe's 478-point face mesh from the input photo, applies procedure-specific Gaussian RBF deformations calibrated from anthropometric surgical data, renders the deformed mesh as a tessellation wireframe, and feeds that wireframe into a ControlNet-conditioned Stable Diffusion 1.5 backbone to synthesize the predicted face. The output is composited back onto the original image using Laplacian pyramid blending with feathered surgical masks, then refined through neural face restoration and identity verification.
 
 > **Paper:** "LandmarkDiff: Anatomically-Conditioned Latent Diffusion for Photorealistic Facial Surgery Outcome Prediction," targeting MICCAI 2026.
->
-> **Live demo:** [huggingface.co/spaces/dreamlessx/LandmarkDiff](https://huggingface.co/spaces/dreamlessx/LandmarkDiff) (runs on CPU, no GPU needed)
+
+### Try the Live Demo
+
+**[huggingface.co/spaces/dreamlessx/LandmarkDiff](https://huggingface.co/spaces/dreamlessx/LandmarkDiff)** -- runs entirely on CPU, no GPU or local install needed. Upload a photo, pick a procedure, adjust intensity, and see the predicted result with symmetry analysis in seconds.
 
 ```bash
 # Quick install
@@ -54,6 +57,7 @@ python scripts/run_inference.py photo.jpg --procedure rhinoplasty --intensity 60
 - [Quick Start](#quick-start)
 - [Inference Modes](#inference-modes)
 - [Gradio Web Demo](#gradio-web-demo)
+- [Symmetry Analysis](#symmetry-analysis)
 - [Training](#training)
 - [Evaluation and Metrics](#evaluation-and-metrics)
 - [Clinical Edge Cases](#clinical-edge-cases)
@@ -401,6 +405,31 @@ Upload a photo and get back the detected Fitzpatrick skin type, face view classi
 
 ### Tab 5: Multi-Angle Capture
 Guides the user through capturing 5 standardized clinical views: frontal (0 degrees), left three-quarter (45 degrees), right three-quarter (45 degrees), left profile (90 degrees), right profile (90 degrees). Validates each photo against the expected yaw range and generates predictions for all views, producing a combined before/after gallery.
+
+---
+
+## Symmetry Analysis
+
+LandmarkDiff includes bilateral facial symmetry measurement as part of both the demo and the evaluation pipeline. The analysis works by reflecting left-side landmarks across the facial midline (computed from the forehead apex to the chin) and measuring their Euclidean distance to the corresponding right-side landmarks.
+
+Five anatomical regions are scored independently:
+
+| Region | Landmark pairs | What it captures |
+|--------|---------------|------------------|
+| Eyes | 6 pairs | Palpebral fissure symmetry, canthal tilt |
+| Brows | 5 pairs | Brow arch height and position |
+| Cheeks | 4 pairs | Malar prominence, midface balance |
+| Mouth | 5 pairs | Commissure position, lip symmetry |
+| Jaw | 5 pairs | Mandibular contour, chin alignment |
+
+Scores range from 0 to 100, where 90-100 indicates high symmetry, 70-89 mild asymmetry, and below 70 notable asymmetry. All distances are normalized by inter-ocular distance for scale invariance.
+
+The demo's **Symmetry Analysis** tab offers two modes:
+
+- **Single photo** -- upload any face photo to get a per-region symmetry breakdown with a color-coded overlay (green/yellow/red).
+- **Pre vs. post comparison** -- upload before and after photos to see how a procedure changed the symmetry profile, with per-region deltas.
+
+Symmetry scores are also computed automatically during inference runs and reported alongside the prediction output.
 
 ---
 
