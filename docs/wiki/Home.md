@@ -12,6 +12,15 @@ LandmarkDiff predicts post-surgical facial appearance by combining MediaPipe 478
 
 ## Quick Links
 
+### Getting Started
+
+| Page | Description |
+|------|-------------|
+| [Installation](Installation) | pip, conda, Docker, Apptainer/Singularity, GPU setup |
+| [Quick Start](Quick-Start) | Tutorial with code examples for all 4 inference modes |
+
+### Core Documentation
+
 | Page | Description |
 |------|-------------|
 | [Architecture](Architecture) | Full pipeline diagram -- from face mesh extraction to post-processing |
@@ -19,10 +28,26 @@ LandmarkDiff predicts post-surgical facial appearance by combining MediaPipe 478
 | [API Reference](API-Reference) | Key classes: `LandmarkDiffPipeline`, `FaceLandmarks`, `DeformationHandle`, etc. |
 | [Configuration](Configuration) | YAML experiment config schema, CLI flags, environment variables |
 | [Clinical Flags](Clinical-Flags) | Handling pathological conditions: vitiligo, Bell's palsy, keloid, Ehlers-Danlos |
+
+### Training & Evaluation
+
+| Page | Description |
+|------|-------------|
 | [Training](Training) | Model training, data preparation, DisplacementModel fitting |
+| [Benchmarks](Benchmarks) | Inference speed, VRAM usage, training throughput, quality metrics |
+
+### Usage & Deployment
+
+| Page | Description |
+|------|-------------|
 | [Deployment](Deployment) | Docker, Gradio, REST API deployment options |
 | [FAQ](FAQ) | VRAM requirements, inference modes, custom procedures, intensity scaling |
 | [Troubleshooting](Troubleshooting) | Common errors and how to fix them |
+
+### Development
+
+| Page | Description |
+|------|-------------|
 | [Contributing](Contributing) | Development setup, PR process, testing requirements |
 
 ---
@@ -42,6 +67,8 @@ pip install -e ".[app]"
 # Full development
 pip install -e ".[dev]"
 ```
+
+See the [Installation](Installation) page for Docker, conda, HPC, and GPU setup instructions.
 
 ## Quickstart
 
@@ -63,16 +90,35 @@ Or from the command line:
 python -m landmarkdiff infer face.jpg --procedure rhinoplasty --intensity 60 --mode tps
 ```
 
+See the [Quick Start](Quick-Start) guide for all 4 inference modes with detailed examples.
+
 ## Supported Procedures
 
-| Procedure | Target Region | CPU Mode | GPU Mode |
-|-----------|--------------|----------|----------|
-| rhinoplasty | Nose (tip, bridge, alar base) | Yes | Yes |
-| blepharoplasty | Eyelids (upper/lower) | Yes | Yes |
-| rhytidectomy | Face lift (jowl, midface, neck) | Yes | Yes |
-| orthognathic | Jaw (mandibular repositioning) | Yes | Yes |
-| brow_lift | Brow (lateral/medial elevation) | Yes | Yes |
-| mentoplasty | Chin (advancement/reduction) | Yes | Yes |
+| Procedure | Target Region | CPU Mode | GPU Mode | Community |
+|-----------|--------------|----------|----------|-----------|
+| rhinoplasty | Nose (tip, bridge, alar base) | Yes | Yes | |
+| blepharoplasty | Eyelids (upper/lower) | Yes | Yes | |
+| rhytidectomy | Face lift (jowl, midface, neck) | Yes | Yes | |
+| orthognathic | Jaw (mandibular repositioning) | Yes | Yes | |
+| brow_lift | Brow (lateral/medial elevation) | Yes | Yes | [Deepak8858](https://github.com/dreamlessx/LandmarkDiff-public/pull/35) |
+| mentoplasty | Chin (advancement/reduction) | Yes | Yes | [P-r-e-m-i-u-m](https://github.com/dreamlessx/LandmarkDiff-public/pull/36) |
+
+See the [Procedures](Procedures) page for landmark indices, displacement vectors, and clinical notes.
+
+## Inference Modes
+
+| Mode | Device | Speed | Quality | VRAM |
+|------|--------|-------|---------|------|
+| tps | CPU | ~50ms | Geometric only | 0 GB |
+| img2img | GPU | ~5s | Good | 4 GB |
+| controlnet | GPU | ~8s | Best | 6 GB |
+| controlnet_ip | GPU | ~10s | Best + identity | 8 GB |
+
+See the [Benchmarks](Benchmarks) page for detailed performance data across hardware.
+
+## Live Demo
+
+Try LandmarkDiff without installation at [huggingface.co/spaces/dreamlessx/LandmarkDiff](https://huggingface.co/spaces/dreamlessx/LandmarkDiff) (TPS mode, runs on CPU).
 
 ## License
 
