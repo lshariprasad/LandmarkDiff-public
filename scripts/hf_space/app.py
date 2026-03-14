@@ -552,17 +552,26 @@ def process_image(image_rgb, procedure, intensity):
         post_overall, post_regions = compute_symmetry_score(manipulated)
         sym_delta = post_overall - pre_overall
 
+        sym_arrow = "+" if sym_delta > 0 else ""
         info_lines = [
-            f"Procedure: {procedure.replace('_', ' ').title()}",
-            f"Intensity: {intensity:.0f}%",
-            f"Landmarks: {len(face.landmarks)}",
-            f"Avg displacement: {displacement:.1f} px",
-            f"Confidence: {face.confidence:.2f}",
-            f"Time: {elapsed:.2f}s | Mode: TPS (CPU)",
-            "",
-            f"Symmetry (before): {pre_overall:.1f}/100",
-            f"Symmetry (after):  {post_overall:.1f}/100",
-            f"Symmetry change:   {sym_delta:+.1f}",
+            f"--- Procedure ---",
+            f"  Type:          {procedure.replace('_', ' ').title()}",
+            f"  Intensity:     {intensity:.0f}%",
+            f"  Description:   {PROCEDURE_INFO.get(procedure, '')}",
+            f"",
+            f"--- Detection ---",
+            f"  Landmarks:     {len(face.landmarks)} points",
+            f"  Confidence:    {face.confidence:.2f}",
+            f"  Avg shift:     {displacement:.1f} px",
+            f"",
+            f"--- Symmetry ---",
+            f"  Before:        {pre_overall:.1f} / 100",
+            f"  After:         {post_overall:.1f} / 100",
+            f"  Change:        {sym_arrow}{sym_delta:.1f}",
+            f"",
+            f"--- Performance ---",
+            f"  Time:          {elapsed:.2f}s",
+            f"  Mode:          TPS (CPU)",
         ]
         info = "\n".join(info_lines)
         return wireframe_rgb, mask_vis, composited_rgb, image_rgb_512, info
@@ -633,18 +642,50 @@ _proc_table = "\n".join(
     f"| {name.replace('_', ' ').title()} | {desc} |" for name, desc in PROCEDURE_INFO.items()
 )
 
+_CSS = """
+.header-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 8px;
+    color: white;
+}
+.header-banner h1 { color: white !important; margin-bottom: 4px; font-size: 2em; }
+.header-banner p { color: #ccd; margin: 4px 0; font-size: 0.95em; }
+.header-banner a { color: #7eb8f7; text-decoration: none; }
+.header-banner a:hover { text-decoration: underline; }
+.link-bar { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+.info-output textarea {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace !important;
+    font-size: 0.88em !important;
+    line-height: 1.6 !important;
+}
+"""
+
 with gr.Blocks(
-    title="LandmarkDiff",
+    title="LandmarkDiff -- Facial Surgery Prediction",
     theme=gr.themes.Soft(),
+    css=_CSS,
 ) as demo:
-    gr.Markdown(
-        f"# LandmarkDiff\n\n"
-        f"Facial surgery outcome prediction from clinical photography. "
-        f"Upload a face photo, pick a procedure, adjust intensity.\n\n"
-        f"| Procedure | Effect |\n|---|---|\n{_proc_table}\n\n"
-        f"[GitHub]({GITHUB_URL}) | "
-        f"[Docs]({GITHUB_URL}/tree/main/docs) | "
-        f"[Wiki]({GITHUB_URL}/wiki)"
+    gr.HTML(
+        f"""<div class="header-banner">
+        <h1>LandmarkDiff</h1>
+        <p>
+            Anatomically-conditioned facial surgery outcome prediction from standard clinical
+            photography. Upload a face photo, select a procedure, adjust intensity, and see
+            the predicted result in real time.
+        </p>
+        <p style="font-size:0.85em; color:#aab;">
+            Powered by MediaPipe 478-point face mesh, thin-plate spline warping, and
+            procedure-specific anatomical displacement models. Runs entirely on CPU.
+        </p>
+        <div class="link-bar">
+            <a href="{GITHUB_URL}">GitHub</a>
+            <a href="{GITHUB_URL}/tree/main/docs">Documentation</a>
+            <a href="{GITHUB_URL}/wiki">Wiki</a>
+            <a href="{GITHUB_URL}/discussions">Discussions</a>
+        </div>
+        </div>"""
     )
 
     # -- Tab 1: Single Procedure --
@@ -656,6 +697,16 @@ with gr.Blocks(
                     choices=PROCEDURES,
                     value="rhinoplasty",
                     label="Procedure",
+                    info="Select a surgical procedure to simulate",
+                )
+                # Show a brief description for each procedure
+                _proc_desc_md = " | ".join(
+                    f"**{k.replace('_', ' ').title()}**: {v}"
+                    for k, v in PROCEDURE_INFO.items()
+                )
+                gr.Markdown(
+                    f"<div style='font-size:0.82em;color:#666;line-height:1.5;'>"
+                    f"{_proc_desc_md}</div>"
                 )
                 intensity = gr.Slider(
                     0,
@@ -663,10 +714,15 @@ with gr.Blocks(
                     50,
                     step=1,
                     label="Intensity (%)",
-                    info="0 = no change, 100 = maximum",
+                    info="0 = no change, 100 = maximum effect",
                 )
-                run_btn = gr.Button("Generate", variant="primary", size="lg")
-                info_box = gr.Textbox(label="Info", lines=10, interactive=False)
+                run_btn = gr.Button("Generate Prediction", variant="primary", size="lg")
+                info_box = gr.Textbox(
+                    label="Results",
+                    lines=10,
+                    interactive=False,
+                    elem_classes=["info-output"],
+                )
 
             with gr.Column(scale=2):
                 with gr.Row():
@@ -681,6 +737,16 @@ with gr.Blocks(
                 examples=[[str(p)] for p in EXAMPLE_IMAGES],
                 inputs=[input_image],
                 label="Example faces (click to load)",
+            )
+
+        with gr.Accordion("Photo Tips for Best Results", open=False):
+            gr.Markdown(
+                "- **Front-facing**: Use a straight-on frontal photo, not a side profile\n"
+                "- **Good lighting**: Even, natural lighting works best. Avoid harsh shadows\n"
+                "- **Neutral expression**: Keep a relaxed, neutral face for accurate landmark detection\n"
+                "- **No obstructions**: Remove glasses, hats, or anything covering the face\n"
+                "- **Resolution**: At least 256x256 pixels. The image will be resized to 512x512 internally\n"
+                "- **Single face**: Make sure only one face is clearly visible in the frame"
             )
 
         outputs = [out_wireframe, out_mask, out_result, out_original, info_box]
@@ -841,10 +907,14 @@ with gr.Blocks(
                     outputs=[sym_pre_overlay, sym_post_overlay, sym_cmp_box],
                 )
 
-    gr.Markdown(
-        f"<div style='text-align:center;color:#999;font-size:0.8em;padding:8px'>"
-        f"LandmarkDiff v0.2.2 | TPS on CPU | MediaPipe 478-point mesh | "
-        f"<a href='{GITHUB_URL}'>GitHub</a> | MIT License</div>"
+    gr.HTML(
+        f"<div style='text-align:center;color:#888;font-size:0.78em;padding:12px 8px;"
+        f"border-top:1px solid #eee;margin-top:12px;'>"
+        f"LandmarkDiff v0.2.2 &middot; TPS on CPU &middot; "
+        f"MediaPipe 478-point mesh &middot; "
+        f"<a href='{GITHUB_URL}' style='color:#7eb8f7;'>GitHub</a> &middot; "
+        f"MIT License &middot; For research and educational purposes only"
+        f"</div>"
     )
 
 if __name__ == "__main__":
