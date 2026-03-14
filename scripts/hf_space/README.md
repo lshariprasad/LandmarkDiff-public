@@ -9,7 +9,7 @@ python_version: "3.11"
 app_file: app.py
 pinned: true
 license: mit
-short_description: Facial surgery outcome prediction with 6 procedures
+short_description: Facial surgery outcome prediction -- 2D foundation toward 3D reconstruction
 tags:
   - medical-imaging
   - face
@@ -52,6 +52,8 @@ Upload a face photo, select a surgical procedure, adjust intensity, and see the 
 4. **Masked compositing** -- blends the surgical region back into the original photo
 
 GPU modes (ControlNet, img2img) with photorealistic rendering are available in the full package.
+
+**Roadmap:** This 2D TPS demo is the foundation. Next up -- 3D face reconstruction from phone video for interactive surgical preview.
 
 ## Photo Tips
 

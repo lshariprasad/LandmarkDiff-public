@@ -678,6 +678,8 @@ with gr.Blocks(
         <p style="font-size:0.85em; color:#aab;">
             Powered by MediaPipe 478-point face mesh, thin-plate spline warping, and
             procedure-specific anatomical displacement models. Runs entirely on CPU.
+            This 2D demo is the foundation -- 3D face reconstruction from phone video
+            is on the roadmap.
         </p>
         <div class="link-bar">
             <a href="{GITHUB_URL}">GitHub</a>
