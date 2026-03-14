@@ -20,7 +20,7 @@ Photorealistic facial surgery outcome prediction from standard clinical photogra
 </td>
 <td width="50%">
 
-**4 procedures** -- rhinoplasty, blepharoplasty, rhytidectomy, orthognathic
+**6 procedures** -- rhinoplasty, blepharoplasty, rhytidectomy, orthognathic, brow lift, mentoplasty
 **4 inference modes** -- TPS (CPU), img2img, ControlNet, ControlNet+IP
 **5 clinical flags** -- vitiligo, Bell's palsy, keloid, Ehlers-Danlos, Fitzpatrick-stratified eval
 
@@ -85,7 +85,7 @@ Patients considering facial surgery want to see what they'll look like afterward
 
 ## Supported Procedures
 
-LandmarkDiff ships with four procedure presets, each targeting specific anatomical regions with calibrated displacement vectors.
+LandmarkDiff ships with six procedure presets, each targeting specific anatomical regions with calibrated displacement vectors.
 
 ### Rhinoplasty (Nose Reshaping)
 
@@ -110,6 +110,22 @@ Targets 32 landmarks along the jawline, cheeks, and periauricular region. Deform
 Targets 47 landmarks across the mandible, maxilla, and chin. Deformations simulate mandibular advancement or setback, chin projection changes, and lateral jaw narrowing. Uses a 35px influence radius. Note that identity loss is disabled for orthognathic predictions because jaw repositioning inherently changes facial proportions more than the other procedures.
 
 **Landmark indices:** 0, 17, 18, 36, 37, 39, 40, 57, 61, 78, 80, 81, 82, 84, 87, 88, 91, 95, 146, 167, 169, 170, 175, 181, 191, 200, 201, 202, 204, 208, 211, 212, 214, 269, 270, 291, 311, 312, 317, 321, 324, 325, 375, 396, 405, 407, 415
+
+### Brow Lift
+
+Targets 19 landmarks across the left and right brows and the upper forehead. Lateral brow landmarks receive progressively stronger upward displacement (weighted 0.7 to 1.1), simulating the lateral brow peak that defines a youthful arch. Forehead landmarks get a gentler lift with a wider influence radius (1.2x) for smooth tissue redistribution. Uses a 25px influence radius.
+
+**Landmark indices:** 70, 63, 105, 66, 107, 300, 293, 334, 296, 336, 9, 8, 10, 109, 67, 103, 338, 297, 332
+
+*Contributed by [@Deepak8858](https://github.com/Deepak8858) in [#35](https://github.com/dreamlessx/LandmarkDiff-public/pull/35).*
+
+### Mentoplasty (Chin Surgery)
+
+Targets 8 landmarks on the chin tip, lower contour, and jaw angles. The chin tip (landmarks 152, 175) receives the strongest advancement, the lower contour follows with softer displacement at a tighter radius (0.8x), and the jaw angles get minimal pull (0.6x radius) for a natural transition. Uses a 25px influence radius.
+
+**Landmark indices:** 148, 149, 150, 152, 171, 175, 176, 377
+
+*Contributed by [@P-r-e-m-i-u-m](https://github.com/P-r-e-m-i-u-m) in [#36](https://github.com/dreamlessx/LandmarkDiff-public/pull/36).*
 
 ### Adding Your Own Procedure
 
@@ -792,7 +808,7 @@ make clean           # remove build artifacts
 
 ### Current (v0.1 - Spring 2026)
 - [x] Core pipeline: landmark extraction, RBF deformation, ControlNet conditioning, mask compositing
-- [x] 4 procedure presets (rhinoplasty, blepharoplasty, rhytidectomy, orthognathic)
+- [x] 6 procedure presets (rhinoplasty, blepharoplasty, rhytidectomy, orthognathic, brow lift, mentoplasty)
 - [x] Synthetic training pair generation via TPS warps
 - [x] Clinical edge case handling (vitiligo, Bell's palsy, keloid, Ehlers-Danlos)
 - [x] Neural post-processing (CodeFormer, Real-ESRGAN, ArcFace identity verification)
@@ -805,7 +821,7 @@ make clean           # remove build artifacts
 ### Next (v0.2 - Summer 2026)
 - [ ] FLUX.1-dev backbone upgrade (higher quality generation at 1024x1024)
 - [ ] IP-Adapter FaceID for stronger identity preservation
-- [ ] Additional procedure presets (mentoplasty, brow lift, otoplasty)
+- [ ] Additional procedure presets (otoplasty, genioplasty)
 - [ ] Clinical validation with board-certified plastic surgeons
 - [ ] Hugging Face Spaces interactive demo
 - [ ] arXiv preprint (target: April 2026)
@@ -858,6 +874,8 @@ We track all contributions and contributors will be acknowledged in the MICCAI 2
 | GitHub Handle | Contribution |
 |---|---|
 | [@dreamlessx](https://github.com/dreamlessx) | Core architecture, training pipeline, paper |
+| [@Deepak8858](https://github.com/Deepak8858) | Brow lift procedure preset ([#35](https://github.com/dreamlessx/LandmarkDiff-public/pull/35)) |
+| [@P-r-e-m-i-u-m](https://github.com/P-r-e-m-i-u-m) | Mentoplasty procedure preset ([#36](https://github.com/dreamlessx/LandmarkDiff-public/pull/36)) |
 
 To join this list, open a PR or contribute to an issue. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
