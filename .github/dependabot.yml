@@ -7,6 +7,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+      - "ci"
     ignore:
       - dependency-name: "torch"
         update-types: ["version-update:semver-major"]
@@ -14,6 +15,6 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "ci"

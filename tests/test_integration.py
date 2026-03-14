@@ -144,20 +144,14 @@ class TestAllProceduresProduceDifferentOutputs:
         for i in range(len(procs)):
             for j in range(i + 1, len(procs)):
                 diff = np.abs(results[procs[i]] - results[procs[j]]).sum()
-                assert diff > 0.0, (
-                    f"{procs[i]} and {procs[j]} produced identical displacements"
-                )
+                assert diff > 0.0, f"{procs[i]} and {procs[j]} produced identical displacements"
 
     def test_all_procedures_move_landmarks(self, mock_face):
         """Each procedure actually displaces at least some landmarks."""
         for proc in ALL_PROCEDURES:
             manip = apply_procedure_preset(mock_face, proc, 65.0, image_size=512)
-            total_displacement = np.abs(
-                manip.pixel_coords - mock_face.pixel_coords
-            ).sum()
-            assert total_displacement > 1.0, (
-                f"{proc} produced near-zero total displacement"
-            )
+            total_displacement = np.abs(manip.pixel_coords - mock_face.pixel_coords).sum()
+            assert total_displacement > 1.0, f"{proc} produced near-zero total displacement"
 
 
 class TestIntensitySweep:
@@ -169,26 +163,20 @@ class TestIntensitySweep:
         intensities = [10.0, 30.0, 50.0, 70.0, 90.0]
         displacements = []
         for intensity in intensities:
-            manip = apply_procedure_preset(
-                mock_face, procedure, intensity, image_size=512
-            )
-            disp = np.linalg.norm(
-                manip.pixel_coords - mock_face.pixel_coords, axis=1
-            ).sum()
+            manip = apply_procedure_preset(mock_face, procedure, intensity, image_size=512)
+            disp = np.linalg.norm(manip.pixel_coords - mock_face.pixel_coords, axis=1).sum()
             displacements.append(disp)
 
         # Each step should be >= previous (monotonic non-decreasing)
         for i in range(1, len(displacements)):
             assert displacements[i] >= displacements[i - 1] - 1e-3, (
                 f"{procedure} intensity sweep not monotonic at "
-                f"intensity={intensities[i]}: {displacements[i]:.4f} < {displacements[i-1]:.4f}"
+                f"intensity={intensities[i]}: {displacements[i]:.4f} < {displacements[i - 1]:.4f}"
             )
 
     def test_zero_intensity_no_displacement(self, mock_face):
         """Intensity 0 should produce no displacement."""
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 0.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 0.0, image_size=512)
         diff = np.abs(manip.pixel_coords - mock_face.pixel_coords).max()
         assert diff < 1e-5, f"Zero intensity produced displacement: {diff}"
 
@@ -215,9 +203,7 @@ class TestConditioningPipeline:
     def test_manipulated_conditioning_differs(self, mock_face):
         """Conditioning from manipulated landmarks should differ from original."""
         _, _, wf_orig = generate_conditioning(mock_face, 512, 512)
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 80.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 80.0, image_size=512)
         _, _, wf_manip = generate_conditioning(manip, 512, 512)
         assert not np.array_equal(wf_orig, wf_manip)
 
@@ -254,7 +240,7 @@ class TestMaskingPipeline:
             masks[proc] = generate_surgical_mask(mock_face, proc, 512, 512)
 
         for i, p1 in enumerate(MASKABLE_PROCEDURES):
-            for p2 in MASKABLE_PROCEDURES[i + 1:]:
+            for p2 in MASKABLE_PROCEDURES[i + 1 :]:
                 assert not np.array_equal(masks[p1], masks[p2]), (
                     f"{p1} and {p2} masks are identical"
                 )
@@ -286,9 +272,7 @@ class TestTPSWarp:
 
     def test_warp_with_displacement(self, mock_face, synthetic_face_512):
         """Warping with manipulated landmarks produces a different image."""
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 80.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 80.0, image_size=512)
         warped = warp_image_tps(
             synthetic_face_512,
             mock_face.pixel_coords,
@@ -305,9 +289,7 @@ class TestPostProcessPipeline:
         from landmarkdiff.postprocess import laplacian_pyramid_blend
 
         full_mask = np.ones((512, 512), dtype=np.float32)
-        target = np.random.default_rng(99).integers(
-            50, 200, (512, 512, 3), dtype=np.uint8
-        )
+        target = np.random.default_rng(99).integers(50, 200, (512, 512, 3), dtype=np.uint8)
         result = laplacian_pyramid_blend(synthetic_face_512, target, full_mask, levels=4)
         diff = np.abs(result.astype(float) - synthetic_face_512.astype(float)).mean()
         assert diff < 5.0
@@ -316,9 +298,7 @@ class TestPostProcessPipeline:
         """Histogram matching output has correct shape."""
         from landmarkdiff.postprocess import histogram_match_skin
 
-        target = np.random.default_rng(99).integers(
-            50, 200, (512, 512, 3), dtype=np.uint8
-        )
+        target = np.random.default_rng(99).integers(50, 200, (512, 512, 3), dtype=np.uint8)
         mask = np.zeros((512, 512), dtype=np.float32)
         cv2.circle(mask, (256, 256), 100, 1.0, -1)
         result = histogram_match_skin(synthetic_face_512, target, mask)
@@ -339,9 +319,7 @@ class TestPostProcessPipeline:
 
         mask = generate_surgical_mask(mock_face, "rhinoplasty", 512, 512)
         # Use synthetic image as both source and target for shape/type checks
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 65.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 65.0, image_size=512)
         warped = warp_image_tps(
             synthetic_face_512,
             mock_face.pixel_coords,
@@ -409,9 +387,7 @@ class TestDeterminism:
 
     def test_tps_deterministic(self, mock_face, synthetic_face_512):
         """Same control points produce identical TPS warp."""
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 65.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 65.0, image_size=512)
         w1 = warp_image_tps(
             synthetic_face_512,
             mock_face.pixel_coords,
@@ -430,9 +406,7 @@ class TestEdgeCases:
 
     def test_max_intensity(self, mock_face):
         """Intensity 100 should not produce NaN or Inf."""
-        manip = apply_procedure_preset(
-            mock_face, "rhinoplasty", 100.0, image_size=512
-        )
+        manip = apply_procedure_preset(mock_face, "rhinoplasty", 100.0, image_size=512)
         assert np.isfinite(manip.pixel_coords).all()
 
     def test_small_image_size(self, mock_face):
@@ -443,9 +417,7 @@ class TestEdgeCases:
             image_width=256,
             image_height=256,
         )
-        manip = apply_procedure_preset(
-            small_face, "rhinoplasty", 65.0, image_size=256
-        )
+        manip = apply_procedure_preset(small_face, "rhinoplasty", 65.0, image_size=256)
         assert manip.pixel_coords.shape == (478, 2)
         assert np.isfinite(manip.pixel_coords).all()
 

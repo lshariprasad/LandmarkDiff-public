@@ -9,8 +9,10 @@ import cv2
 import numpy as np
 import pytest
 
-# Ensure the package root is importable
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Ensure the package root and benchmarks dir are importable
+_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_root))
+sys.path.insert(0, str(_root / "benchmarks"))
 
 
 @pytest.fixture
