@@ -13,31 +13,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Push wiki pages
         env:
-          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          TOKEN="${GH_TOKEN}"
-          
-          git clone "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki-dir 2>/dev/null || {
-            echo "Wiki repo not found. Please create the first page at:"
-            echo "  https://github.com/${{ github.repository }}/wiki/_new"
-            echo "Then re-run this workflow."
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki-dir 2>/dev/null || {
+            echo "::error::Wiki not initialized. Create the first page at https://github.com/${{ github.repository }}/wiki/_new then re-run."
             exit 1
           }
-          
           cd wiki-dir
-          
-          # Remove old pages, copy fresh ones
           rm -f *.md
           cp ../docs/wiki/*.md .
-          
           git config user.name "dreamlessx"
           git config user.email "dreamlessx@users.noreply.github.com"
           git add -A
-          
           if git diff --staged --quiet; then
-            echo "No wiki changes to push."
+            echo "No wiki changes."
           else
             git commit -m "update wiki pages"
             git push origin master
-            echo "Wiki updated successfully."
+            echo "Wiki updated."
           fi
