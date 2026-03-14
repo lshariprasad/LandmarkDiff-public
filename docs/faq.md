@@ -12,15 +12,92 @@ Yes, in TPS mode. It does geometric warping on CPU in about 0.5 seconds. The pho
 
 **What GPU do I need?**
 
-For inference: anything with 6GB+ VRAM (RTX 3060 and up, T4, etc.). For training: 24GB minimum (RTX 3090), 80GB recommended (A100).
+For inference: anything with 6GB+ VRAM (RTX 3060 and up, T4, etc.). For training: 24GB minimum (RTX 3090), 80GB recommended (A100). See the full GPU requirements table below.
+
+| Mode | Min VRAM | Recommended | Notes |
+|------|----------|-------------|-------|
+| tps | 0 GB | -- | CPU-only, no GPU needed |
+| img2img | 4 GB | 6 GB | SD1.5 with model_cpu_offload |
+| controlnet | 6 GB | 8 GB | SD1.5 + ControlNet |
+| controlnet_ip | 8 GB | 10 GB | SD1.5 + ControlNet + IP-Adapter |
+| Training | 24 GB | 80 GB | RTX 3090 minimum, A100 80GB recommended |
+
+With `enable_model_cpu_offload()`, CUDA VRAM usage is reduced by moving model components to CPU RAM when not in use. This is enabled by default.
+
+On Apple Silicon (MPS), all models run in fp32 due to MPS backend limitations. This roughly doubles memory compared to CUDA fp16.
 
 **Is this FDA approved for clinical use?**
 
-No. This is a research tool. Predictions are AI-generated simulations, not medical advice. Any clinical deployment would need regulatory review.
+No. This is a research tool. Predictions are simulations, not medical advice. Any clinical deployment would need regulatory review.
 
 **Can I use my own photos?**
 
 Yes. The pipeline works on any photo with a detectable face. Upload through the Gradio demo or pass a file path to the CLI.
+
+**What image formats are supported?**
+
+Any format readable by OpenCV: JPEG, PNG, BMP, TIFF, WebP. The input is resized to 512x512 internally. For best results, use well-lit clinical photos with the face centered and filling most of the frame. PNG with transparency (alpha channel) is handled by discarding the alpha channel before processing.
+
+**How does the intensity parameter work?**
+
+Intensity is always on a 0-100 scale:
+
+| Value | Effect |
+|-------|--------|
+| 0 | No deformation (identity transform) |
+| 33 | Mild surgical effect |
+| 50 | Moderate (default in most examples) |
+| 66 | Noticeable |
+| 100 | Maximum / aggressive |
+
+Internally, `apply_procedure_preset()` divides intensity by 100 to get a scale factor that multiplies all displacement vectors. For example, a rhinoplasty tip displacement of `(0, -2.0)` at intensity=50 becomes `(0, -2.0 * 0.5) = (0, -1.0)` pixels.
+
+When using the `DisplacementModel` (data-driven mode), the pipeline maps 0-100 to a 0-2.0 range where 1.0 represents the average observed displacement from real surgery pairs. So intensity=50 gives average displacement, and intensity=100 gives 2x average.
+
+**What is `pixel_coords` and why can't I call it?**
+
+`pixel_coords` is a `@property` on the `FaceLandmarks` dataclass, not a method. Access it without parentheses:
+
+```python
+face = extract_landmarks(image)
+
+# Correct
+coords = face.pixel_coords     # returns (478, 2) numpy array
+
+# Wrong -- will raise TypeError
+coords = face.pixel_coords()   # pixel_coords is not callable
+```
+
+The property computes pixel coordinates from the normalized (0-1) MediaPipe coordinates using the image dimensions stored in the `FaceLandmarks` object.
+
+**Can I process multiple images in a batch?**
+
+Yes. Use the batch inference script:
+
+```bash
+python examples/batch_inference.py /path/to/image_dir/ \
+    --procedure blepharoplasty \
+    --intensity 50 \
+    --output output/batch/
+```
+
+Or in Python, create the pipeline once and loop over images:
+
+```python
+from landmarkdiff.inference import LandmarkDiffPipeline
+
+pipeline = LandmarkDiffPipeline(mode="controlnet", device="cuda")
+pipeline.load()
+
+for image_path in image_paths:
+    result = pipeline.generate(load_image(image_path), procedure="rhinoplasty", intensity=60)
+```
+
+Creating the pipeline once and reusing it avoids reloading model weights on every call.
+
+**Is the pipeline thread-safe?**
+
+No. The underlying PyTorch and diffusion models are not thread-safe. If you need concurrent processing, use separate processes (e.g., `multiprocessing`) with each process holding its own pipeline instance. For a web server, use a single pipeline instance per worker process and route requests sequentially within each worker.
 
 ## Installation Issues
 
@@ -93,7 +170,7 @@ The Laplacian pyramid blending should handle this, but if you see artifacts:
 
 **TPS warp looks distorted**
 
-TPS mode is purely geometric - it pushes pixels around without any neural generation. At high intensity (>70%) the distortion becomes obvious. This is expected. Use ControlNet mode for photorealistic results.
+TPS mode is purely geometric -- it pushes pixels around without any neural generation. At high intensity (>70%) the distortion becomes obvious. This is expected. Use ControlNet mode for photorealistic results.
 
 ## Training Issues
 
@@ -139,3 +216,111 @@ The first inference downloads model weights (~6GB total). Subsequent runs use th
 **File upload not working in Colab**
 
 The Gradio demo uses `share=True` by default in Colab, which creates a public URL. If file upload fails, try running locally or using the notebook instead.
+
+## Developer Issues
+
+**mypy reports type errors in LandmarkDiff modules**
+
+The project uses mypy with `--ignore-missing-imports` because several dependencies (mediapipe, insightface, lpips, etc.) do not ship type stubs. Common mypy errors and fixes:
+
+1. **`Module has no attribute`** for optional imports -- Some modules are imported conditionally with try/except. mypy cannot track these. The `pyproject.toml` already includes `[[tool.mypy.overrides]]` entries for known modules.
+
+2. **`Incompatible types in assignment`** with numpy -- The `pixel_coords` property returns `np.ndarray` but mypy sometimes infers a different type. Use explicit type annotations:
+   ```python
+   coords: np.ndarray = face.pixel_coords
+   ```
+
+3. **`Cannot find implementation or library stub`** -- Install type stubs:
+   ```bash
+   pip install types-Pillow types-PyYAML
+   ```
+
+Run the type checker the same way CI does:
+```bash
+mypy landmarkdiff/ --ignore-missing-imports
+```
+
+**pre-commit hooks fail**
+
+The project uses pre-commit with ruff (lint + format) and mypy. Common failures:
+
+1. **ruff format** -- Code was not formatted. Fix:
+   ```bash
+   ruff format landmarkdiff/ scripts/ tests/
+   ```
+
+2. **ruff check** -- Linting errors. Fix auto-fixable ones:
+   ```bash
+   ruff check --fix landmarkdiff/ scripts/ tests/
+   ```
+
+3. **trailing-whitespace or end-of-file-fixer** -- These hooks auto-fix the issue. Just re-stage the files and commit again.
+
+4. **check-added-large-files** -- You are trying to commit a file larger than 1MB. Use Git LFS for model checkpoints and large data files.
+
+5. **mypy** -- Type errors. Run `mypy landmarkdiff/ --ignore-missing-imports` to see the full report and fix errors before committing.
+
+To install pre-commit hooks after cloning:
+```bash
+pip install -e ".[dev]"
+pre-commit install
+```
+
+To run all hooks manually on all files:
+```bash
+pre-commit run --all-files
+```
+
+**Docker build fails**
+
+Common Docker build issues:
+
+1. **CUDA version mismatch** -- The GPU Dockerfile (`Dockerfile`) uses `nvidia/cuda:12.1.1-devel-ubuntu22.04`. If your host has a different CUDA driver version, ensure driver compatibility (CUDA 12.1 requires driver >= 530).
+
+2. **Out of disk space** -- The GPU image is large (~10 GB). Clean old images:
+   ```bash
+   docker system prune -a
+   ```
+
+3. **pip install fails inside container** -- Network issues or missing system packages. The Dockerfiles install the required system libraries (`libgl1-mesa-glx`, `libglib2.0-0`, etc.). If you modified the Dockerfile and see `ImportError: libGL.so.1`, add:
+   ```dockerfile
+   RUN apt-get update && apt-get install -y libgl1-mesa-glx
+   ```
+
+4. **CPU Dockerfile (`Dockerfile.cpu`)** installs CPU-only PyTorch from `https://download.pytorch.org/whl/cpu`. If you need GPU support, use the main `Dockerfile` instead.
+
+5. **Permission errors with mounted volumes** -- The container runs as root by default. If you mount host directories, ensure the directories exist and are writable:
+   ```bash
+   mkdir -p data checkpoints
+   docker compose up app
+   ```
+
+**Sphinx documentation build fails**
+
+1. **Missing dependencies** -- Install the docs requirements:
+   ```bash
+   pip install -r docs/requirements.txt
+   ```
+   Required packages: `sphinx>=7.0`, `furo`, `myst-parser`, `sphinx-autodoc-typehints`, `sphinx-copybutton`.
+
+2. **MyST markdown parse errors** -- The docs use MyST-flavored markdown. Common issues:
+   - Directive syntax uses `{toctree}` not `:toctree:` in code fences.
+   - Heading levels must not skip (e.g., going from `#` to `###` without `##` in between).
+   - Indentation inside directives must be consistent.
+
+3. **autodoc import errors** -- Sphinx tries to import `landmarkdiff` to generate API docs. Install the package first:
+   ```bash
+   pip install -e .
+   sphinx-build -b html docs/ docs/_build/html
+   ```
+
+4. **Build locally with Make or Docker:**
+   ```bash
+   # Make
+   make docs
+
+   # Docker compose
+   docker compose run docs
+   ```
+
+   The HTML output goes to `docs/_build/html/`.
