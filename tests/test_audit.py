@@ -58,7 +58,7 @@ def sample_cases():
 
 @pytest.fixture
 def reporter(sample_cases):
-    r = AuditReporter(model_version="0.3.0")
+    r = AuditReporter(model_version="0.3.2")
     r.add_cases(sample_cases)
     return r
 
@@ -235,7 +235,7 @@ class TestGenerateReport:
         reporter.generate_report(out)
         html = out.read_text()
         assert "Clinical Audit Report" in html
-        assert "0.3.0" in html
+        assert "0.3.2" in html
         assert "Rhinoplasty" in html
         assert "P004" in html  # flagged case
 
