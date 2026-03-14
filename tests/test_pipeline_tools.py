@@ -330,6 +330,7 @@ class TestControlNetEvaluation:
         """Falls back to TPS proxy when no GPU available."""
         # Force torch.cuda.is_available() to return False
         import torch
+
         from scripts.run_evaluation import evaluate_controlnet
 
         monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
@@ -343,6 +344,7 @@ class TestControlNetEvaluation:
     def test_fallback_missing_checkpoint(self, tmp_path, monkeypatch):
         """Falls back to TPS proxy when checkpoint doesn't exist."""
         import torch
+
         from scripts.run_evaluation import evaluate_controlnet
 
         monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
