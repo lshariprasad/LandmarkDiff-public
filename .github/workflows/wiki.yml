@@ -15,14 +15,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WIKI_PAT }}
         run: |
-          rm -rf wiki-dir
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki-dir 2>/dev/null || {
-            echo "Wiki repo does not exist yet, bootstrapping..."
-            mkdir wiki-dir && cd wiki-dir && git init
-            git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git"
-          }
-          cd wiki-dir
-          rm -f *.md
+          REPO="${{ github.repository }}"
+          CLONE_URL="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git"
+          
+          if git clone "$CLONE_URL" wiki-dir 2>/dev/null; then
+            echo "Cloned existing wiki repo"
+            cd wiki-dir
+            rm -f *.md
+          else
+            echo "Wiki repo does not exist, bootstrapping..."
+            mkdir -p wiki-dir
+            cd wiki-dir
+            git init
+            git remote add origin "$CLONE_URL"
+          fi
+          
           cp ../docs/wiki/*.md .
           git config user.name "dreamlessx"
           git config user.email "dreamlessx@users.noreply.github.com"
@@ -33,5 +40,5 @@ jobs:
             git commit -m "update wiki pages"
             git branch -M master
             git push -u origin master --force
-            echo "Wiki updated."
+            echo "Wiki updated successfully."
           fi
