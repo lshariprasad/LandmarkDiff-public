@@ -2014,12 +2014,17 @@ class TestTrainingPair:
 
 
 class TestProceduresList:
-    def test_four_procedures(self):
-        assert len(PROCEDURES) == 4
-        assert "rhinoplasty" in PROCEDURES
-        assert "blepharoplasty" in PROCEDURES
-        assert "rhytidectomy" in PROCEDURES
-        assert "orthognathic" in PROCEDURES
+    def test_six_procedures(self):
+        assert len(PROCEDURES) == 6
+        expected = {
+            "rhinoplasty",
+            "blepharoplasty",
+            "rhytidectomy",
+            "orthognathic",
+            "brow_lift",
+            "mentoplasty",
+        }
+        assert set(PROCEDURES) == expected
 
 
 class TestSavePair:

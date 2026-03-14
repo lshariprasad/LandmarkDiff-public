@@ -98,6 +98,7 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF", "PIE", "W"]
 ignore = [
+    "B905",    # zip-without-explicit-strict (strict=False is the default, adds noise)
     "N812",    # lowercase-imported-as-non-lowercase (common with torch.nn.functional as F)
     "SIM300",  # yoda-conditions (valid in range-check assertions)
     "RUF001",  # ambiguous-unicode-character-string (false positives in docstrings)

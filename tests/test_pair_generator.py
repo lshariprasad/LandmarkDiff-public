@@ -71,9 +71,16 @@ class TestTrainingPair:
 
 
 class TestProcedures:
-    def test_all_four_defined(self):
-        assert len(PROCEDURES) == 4
-        expected = {"rhinoplasty", "blepharoplasty", "rhytidectomy", "orthognathic"}
+    def test_all_six_defined(self):
+        assert len(PROCEDURES) == 6
+        expected = {
+            "rhinoplasty",
+            "blepharoplasty",
+            "rhytidectomy",
+            "orthognathic",
+            "brow_lift",
+            "mentoplasty",
+        }
         assert set(PROCEDURES) == expected
 
 
