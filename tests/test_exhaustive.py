@@ -1091,8 +1091,8 @@ class TestLossWeights:
         w = LossWeights()
         assert w.diffusion == 1.0
         assert w.landmark == 0.1
-        assert w.identity == 0.05
-        assert w.perceptual == 0.1
+        assert w.identity == 0.1
+        assert w.perceptual == 0.05
 
     def test_custom(self):
         w = LossWeights(diffusion=2.0, landmark=0.5, identity=0.1, perceptual=0.2)

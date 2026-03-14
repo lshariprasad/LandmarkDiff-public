@@ -40,7 +40,7 @@ class TestDataclasses:
         assert cfg.phase == "A"
         assert cfg.learning_rate == 1e-5
         assert cfg.batch_size == 4
-        assert cfg.mixed_precision == "fp16"
+        assert cfg.mixed_precision == "bf16"
         assert cfg.optimizer == "adamw"
 
     def test_training_config_phase_b(self):
@@ -91,7 +91,7 @@ class TestDataclasses:
     def test_experiment_config_defaults(self):
         cfg = ExperimentConfig()
         assert cfg.experiment_name == "default"
-        assert cfg.version == "0.3.0"
+        assert cfg.version == "0.3.2"
         assert isinstance(cfg.model, ModelConfig)
         assert isinstance(cfg.training, TrainingConfig)
         assert isinstance(cfg.safety, SafetyConfig)

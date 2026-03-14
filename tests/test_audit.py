@@ -97,7 +97,7 @@ class TestAuditCase:
 class TestReporterInit:
     def test_defaults(self):
         r = AuditReporter()
-        assert r.model_version == "0.3.0"
+        assert r.model_version == "0.3.2"
         assert r.cases == []
 
     def test_add_case(self):
@@ -196,7 +196,7 @@ class TestToJson:
     def test_valid_json(self, reporter):
         j = reporter.to_json()
         data = json.loads(j)
-        assert data["model_version"] == "0.3.0"
+        assert data["model_version"] == "0.3.2"
         assert len(data["cases"]) == 5
 
     def test_summary_in_json(self, reporter):
