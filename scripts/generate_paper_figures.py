@@ -45,8 +45,13 @@ PROC_SHORT = {
 }
 
 
-def add_label(img: np.ndarray, text: str, position: str = "bottom",
-               font_scale: float = 0.5, color=(255, 255, 255)) -> np.ndarray:
+def add_label(
+    img: np.ndarray,
+    text: str,
+    position: str = "bottom",
+    font_scale: float = 0.5,
+    color=(255, 255, 255),
+) -> np.ndarray:
     """Add a text label to an image."""
     img = img.copy()
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -95,21 +100,32 @@ def figure_architecture(output_dir: Path, dpi: int = 200):
 
     for x, y, w, h, label, color in blocks:
         rect = mpatches.FancyBboxPatch(
-            (x, y), w, h,
+            (x, y),
+            w,
+            h,
             boxstyle="round,pad=0.1",
-            facecolor=color, edgecolor="white",
-            alpha=0.85, linewidth=1.5,
+            facecolor=color,
+            edgecolor="white",
+            alpha=0.85,
+            linewidth=1.5,
         )
         ax.add_patch(rect)
         ax.text(
-            x + w / 2, y + h / 2, label,
-            ha="center", va="center",
-            fontsize=9, fontweight="bold", color="white",
+            x + w / 2,
+            y + h / 2,
+            label,
+            ha="center",
+            va="center",
+            fontsize=9,
+            fontweight="bold",
+            color="white",
         )
 
     # Arrows between blocks
     arrow_props = dict(
-        arrowstyle="->", color="#333333", lw=1.5,
+        arrowstyle="->",
+        color="#333333",
+        lw=1.5,
         connectionstyle="arc3,rad=0",
     )
     for i in range(len(blocks) - 1):
@@ -122,13 +138,20 @@ def figure_architecture(output_dir: Path, dpi: int = 200):
     pp_labels = ["CodeFormer", "Real-ESRGAN", "Hist Match", "Laplacian Blend"]
     for j, lbl in enumerate(pp_labels):
         ax.text(
-            12.2, 0.9 - j * 0.22, lbl,
-            ha="center", va="center", fontsize=6, color="#555555",
+            12.2,
+            0.9 - j * 0.22,
+            lbl,
+            ha="center",
+            va="center",
+            fontsize=6,
+            color="#555555",
         )
 
     ax.set_title(
         "LandmarkDiff Pipeline Architecture",
-        fontsize=13, fontweight="bold", pad=12,
+        fontsize=13,
+        fontweight="bold",
+        pad=12,
     )
 
     out_path = output_dir / "fig_architecture.pdf"
@@ -200,8 +223,13 @@ def _blank_panel(size: int, label: str) -> np.ndarray:
 # -----------------------------------------------------------------------
 
 
-def figure_deformation_overlay(image_path: str, output_dir: Path, size: int = 384,
-                               procedure: str = "rhinoplasty", intensity: float = 65.0):
+def figure_deformation_overlay(
+    image_path: str,
+    output_dir: Path,
+    size: int = 384,
+    procedure: str = "rhinoplasty",
+    intensity: float = 65.0,
+):
     """Visualize landmark deformation: original (green) vs deformed (red) with arrows."""
     img = cv2.imread(image_path)
     if img is None:

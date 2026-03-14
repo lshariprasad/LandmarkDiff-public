@@ -123,9 +123,7 @@ def profile_stages(image: np.ndarray, repeats: int = 10) -> dict:
 
     # 1. Landmark extraction
     print("  Profiling landmark extraction...")
-    results["landmark_extraction"] = _warmup_and_time(
-        lambda: extract_landmarks(image), repeats
-    )
+    results["landmark_extraction"] = _warmup_and_time(lambda: extract_landmarks(image), repeats)
 
     face = extract_landmarks(image)
     if face is None:
@@ -135,8 +133,12 @@ def profile_stages(image: np.ndarray, repeats: int = 10) -> dict:
     # 2. Manipulation (per procedure)
     print("  Profiling manipulation...")
     procedures = [
-        "rhinoplasty", "blepharoplasty", "rhytidectomy",
-        "orthognathic", "brow_lift", "mentoplasty",
+        "rhinoplasty",
+        "blepharoplasty",
+        "rhytidectomy",
+        "orthognathic",
+        "brow_lift",
+        "mentoplasty",
     ]
     manip_results = {}
     for proc in procedures:
@@ -328,9 +330,7 @@ def create_synthetic_face() -> np.ndarray:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Benchmark LandmarkDiff inference pipeline"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark LandmarkDiff inference pipeline")
     parser.add_argument("--input", default=None, help="Input face image path")
     parser.add_argument(
         "--modes",
@@ -342,9 +342,7 @@ def main():
     parser.add_argument(
         "--repeats", type=int, default=10, help="Number of timed iterations per stage"
     )
-    parser.add_argument(
-        "--output", default="results/benchmark_inference", help="Output directory"
-    )
+    parser.add_argument("--output", default="results/benchmark_inference", help="Output directory")
     parser.add_argument(
         "--skip-stages",
         action="store_true",
@@ -409,14 +407,17 @@ def main():
     # Save markdown
     md_path = output_dir / "benchmark_inference.md"
     md_content = "\n\n".join(
-        filter(None, [
-            "# LandmarkDiff Inference Benchmark",
-            f"Date: {all_results['timestamp']}",
-            stage_md,
-            mode_md,
-            f"## Memory\n\n- CPU RSS: {mem_summary['cpu_rss_mb']} MB",
-            f"- GPU peak: {mem_summary['gpu_peak_mb']} MB",
-        ])
+        filter(
+            None,
+            [
+                "# LandmarkDiff Inference Benchmark",
+                f"Date: {all_results['timestamp']}",
+                stage_md,
+                mode_md,
+                f"## Memory\n\n- CPU RSS: {mem_summary['cpu_rss_mb']} MB",
+                f"- GPU peak: {mem_summary['gpu_peak_mb']} MB",
+            ],
+        )
     )
     md_path.write_text(md_content)
     print(f"Markdown report: {md_path}")

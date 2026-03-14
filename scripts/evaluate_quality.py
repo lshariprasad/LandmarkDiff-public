@@ -155,22 +155,13 @@ def load_paired_images(
     target_path = Path(target_dir)
 
     exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
-    pred_files = {
-        f.stem: f for f in sorted(pred_path.iterdir())
-        if f.suffix.lower() in exts
-    }
-    target_files = {
-        f.stem: f for f in sorted(target_path.iterdir())
-        if f.suffix.lower() in exts
-    }
+    pred_files = {f.stem: f for f in sorted(pred_path.iterdir()) if f.suffix.lower() in exts}
+    target_files = {f.stem: f for f in sorted(target_path.iterdir()) if f.suffix.lower() in exts}
 
     orig_files = {}
     if original_dir:
         orig_path = Path(original_dir)
-        orig_files = {
-            f.stem: f for f in sorted(orig_path.iterdir())
-            if f.suffix.lower() in exts
-        }
+        orig_files = {f.stem: f for f in sorted(orig_path.iterdir()) if f.suffix.lower() in exts}
 
     common_stems = sorted(set(pred_files) & set(target_files))
     if max_samples > 0:
@@ -189,8 +180,12 @@ def load_paired_images(
         # Try to infer procedure from filename
         proc = "unknown"
         for p in [
-            "rhinoplasty", "blepharoplasty", "rhytidectomy",
-            "orthognathic", "brow_lift", "mentoplasty",
+            "rhinoplasty",
+            "blepharoplasty",
+            "rhytidectomy",
+            "orthognathic",
+            "brow_lift",
+            "mentoplasty",
         ]:
             if p in stem:
                 proc = p
@@ -268,9 +263,7 @@ def evaluate_batch(
     # Per-Fitzpatrick
     per_fitzpatrick = {}
     for ftype, samples in fitz_groups.items():
-        per_fitzpatrick[ftype] = {
-            k: _agg(samples, k) for k in metric_keys
-        }
+        per_fitzpatrick[ftype] = {k: _agg(samples, k) for k in metric_keys}
         per_fitzpatrick[ftype]["count"] = len(samples)
 
     return {
@@ -366,9 +359,7 @@ def format_markdown_table(results: dict) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Evaluate LandmarkDiff output quality"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate LandmarkDiff output quality")
 
     # Single-pair mode
     parser.add_argument("--pred", default=None, help="Single prediction image")
@@ -385,12 +376,8 @@ def main():
     parser.add_argument(
         "--compute-fid", action="store_true", help="Compute FID (needs directories)"
     )
-    parser.add_argument(
-        "--no-identity", action="store_true", help="Skip ArcFace identity check"
-    )
-    parser.add_argument(
-        "--output", default="results/quality", help="Output directory"
-    )
+    parser.add_argument("--no-identity", action="store_true", help="Skip ArcFace identity check")
+    parser.add_argument("--output", default="results/quality", help="Output directory")
     args = parser.parse_args()
 
     output_dir = Path(args.output)
@@ -433,8 +420,10 @@ def main():
     if args.pred_dir and args.target_dir:
         print(f"Loading pairs from {args.pred_dir} and {args.target_dir}...")
         pairs = load_paired_images(
-            args.pred_dir, args.target_dir,
-            args.original_dir, args.max_samples,
+            args.pred_dir,
+            args.target_dir,
+            args.original_dir,
+            args.max_samples,
         )
         print(f"Found {len(pairs)} matched pairs")
 
@@ -463,9 +452,7 @@ def main():
         # Save outputs
         json_path = output_dir / "quality_results.json"
         # Remove per_sample from JSON if too large (keep aggregate)
-        save_results = {
-            k: v for k, v in results.items() if k != "per_sample"
-        }
+        save_results = {k: v for k, v in results.items() if k != "per_sample"}
         save_results["sample_count"] = len(results.get("per_sample", []))
         with open(json_path, "w") as f:
             json.dump(save_results, f, indent=2)
