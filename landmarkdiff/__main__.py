@@ -1,11 +1,14 @@
 """CLI entry point for python -m landmarkdiff."""
 
+from __future__ import annotations
+
 import argparse
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 
-def _error(msg: str) -> None:
+def _error(msg: str) -> NoReturn:
     """Print error to stderr and exit."""
     print(f"error: {msg}", file=sys.stderr)
     sys.exit(1)
