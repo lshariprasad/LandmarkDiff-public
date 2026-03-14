@@ -1,0 +1,32 @@
+name: Initialize Wiki
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create wiki pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Clone wiki repo (GITHUB_TOKEN has wiki access)
+          git clone https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git wiki-dir || {
+            mkdir wiki-dir
+            cd wiki-dir
+            git init
+            git remote add origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git
+          }
+          cd wiki-dir
+          
+          # Copy wiki pages from docs/wiki/ in the main repo  
+          cp ../docs/wiki/*.md . 2>/dev/null || true
+          
+          git config user.name "dreamlessx"
+          git config user.email "dreamlessx@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "update wiki pages"
+          git branch -M master
+          git push -u origin master --force
