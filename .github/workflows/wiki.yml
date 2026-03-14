@@ -1,6 +1,9 @@
-name: Initialize Wiki
+name: Deploy Wiki
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['docs/wiki/**']
 permissions:
   contents: write
 jobs:
@@ -8,11 +11,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy wiki
-        uses: Andrew-Chen-Wang/github-wiki-action@v4
+      - name: Push wiki pages
         env:
-          WIKI_DIR: docs/wiki/
           GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GH_MAIL: dreamlessx@users.noreply.github.com
-          GH_NAME: dreamlessx
-          WIKI_PUSH_MESSAGE: "add comprehensive wiki documentation"
+        run: |
+          TOKEN="${GH_TOKEN}"
+          
+          git clone "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki-dir 2>/dev/null || {
+            echo "Wiki repo not found. Please create the first page at:"
+            echo "  https://github.com/${{ github.repository }}/wiki/_new"
+            echo "Then re-run this workflow."
+            exit 1
+          }
+          
+          cd wiki-dir
+          
+          # Remove old pages, copy fresh ones
+          rm -f *.md
+          cp ../docs/wiki/*.md .
+          
+          git config user.name "dreamlessx"
+          git config user.email "dreamlessx@users.noreply.github.com"
+          git add -A
+          
+          if git diff --staged --quiet; then
+            echo "No wiki changes to push."
+          else
+            git commit -m "update wiki pages"
+            git push origin master
+            echo "Wiki updated successfully."
+          fi
