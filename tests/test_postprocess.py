@@ -147,20 +147,21 @@ class TestHistogramMatchSkin:
     source = rng.integers(100, 200, (h, w, 3), dtype=np.uint8)
     target = rng.integers(80, 180, (h, w, 3), dtype=np.uint8)
 
-    # Only top-left 32x32 is masked
+        # Only top-left 32x32 is masked -- boundary test
     mask = np.zeros((h, w), dtype=np.float32)
     mask[:32, :32] = 1.0
 
     result = histogram_match_skin(source, target, mask)
 
-    # Allow tolerance of 3 — function may have minor
-    # boundary blending effects on adjacent pixels
+        # Allow tolerance of 3 -- function may have minor
+        # boundary blending effects on adjacent pixels
     diff = np.abs(
-        result[40:, 40:].astype(int) - source[40:, 40:].astype(int)
-    ).max()
+            result[40:, 40:].astype(int) - source[40:, 40:].astype(int)
+        ).max()
     assert diff <= 3, (
-        f"Pixels well outside mask should not change. Max diff: {diff}"
-    )
+            f"Pixels well outside mask should not change. Max diff: {diff}"
+        )
+
 
     def test_small_image_8x8(self):
         """Very small 8x8 image should work without errors."""
