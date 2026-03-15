@@ -225,28 +225,41 @@ You can define custom procedures by specifying which landmarks to move, how far,
 
 LandmarkDiff is a five-stage pipeline. Each stage is independently testable and swappable.
 
-```
- Input Photo                                                    Predicted Post-Op
-  (512x512)                                                         Face
-     |                                                               ^
-     v                                                               |
- +-------------------+    +-------------------+    +-------------------+
- | 1. MediaPipe      |    | 2. Gaussian RBF   |    | 3. Conditioning   |
- |    Face Mesh      |--->|    Deformation     |--->|    Generation     |
- |                   |    |                   |    |                   |
- | 478 landmarks     |    | Procedure-specific |    | 2556-edge wireframe|
- | 3D coordinates    |    | displacements     |    | + Canny edges     |
- |                   |    | scaled 0-100%     |    | + surgical mask   |
- +-------------------+    +-------------------+    +--------+----------+
-                                                            |
-                          +-------------------+    +--------v----------+
-                          | 5. Post-Process   |    | 4. ControlNet +   |
-                          |                   |<---|    Stable Diff 1.5|
-                          | CodeFormer restore|    |                   |
-                          | Real-ESRGAN upscale|    | CrucibleAI/      |
-                          | Laplacian blend   |    | MediaPipeFace     |
-                          | ArcFace verify    |    | conditioned gen   |
-                          +-------------------+    +-------------------+
+```mermaid
+graph LR
+    classDef current fill:#2563eb,stroke:#1e40af,color:#fff,stroke-width:2px
+    classDef postproc fill:#1d4ed8,stroke:#1e3a8a,color:#fff,stroke-width:2px
+    classDef planned fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px,stroke-dasharray:6 3
+    classDef io fill:#0f172a,stroke:#334155,color:#fff,stroke-width:2px
+
+    A["Input Photo<br/>(512x512)"]:::io
+    B["MediaPipe<br/>Face Mesh<br/><i>478 landmarks</i>"]:::current
+    C["Gaussian RBF<br/>Deformation<br/><i>procedure-specific</i>"]:::current
+    D["Conditioning<br/>Generation<br/><i>wireframe + edges</i>"]:::current
+    E["ControlNet +<br/>Stable Diff 1.5<br/><i>CrucibleAI model</i>"]:::current
+    G["Output<br/>Prediction"]:::io
+
+    A --> B --> C --> D --> E
+
+    subgraph postprocess ["Post-Processing"]
+        F1["CodeFormer<br/>Restoration"]:::postproc
+        F2["Real-ESRGAN<br/>Upscaling"]:::postproc
+        F3["LAB Histogram<br/>Matching"]:::postproc
+        F4["Laplacian<br/>Blending"]:::postproc
+        F5["ArcFace<br/>Identity Check"]:::postproc
+    end
+
+    E --> F1 --> F2 --> F3 --> F4 --> F5 --> G
+
+    subgraph future ["Planned -- 3D Extension"]
+        H1["Phone Video<br/>Capture"]:::planned
+        H2["FLAME 3D<br/>Reconstruction"]:::planned
+        H3["3D Surgical<br/>Deformation"]:::planned
+        H4["Multi-Angle<br/>Rendering"]:::planned
+        H5["Interactive<br/>3D Viewer"]:::planned
+    end
+
+    H1 -.-> H2 -.-> H3 -.-> H4 -.-> H5
 ```
 
 ### Stage 1: Landmark Extraction
