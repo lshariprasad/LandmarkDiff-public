@@ -121,8 +121,8 @@ class TestDataConfigFields:
         """Default procedures list should be independent per instance."""
         c1 = DataConfig()
         c2 = DataConfig()
-        c1.procedures.append("brow_lift")
-        assert "brow_lift" not in c2.procedures
+        c1.procedures.append("otoplasty")
+        assert "otoplasty" not in c2.procedures
 
     def test_intensity_range_custom(self):
         cfg = DataConfig(intensity_range=(10.0, 50.0))

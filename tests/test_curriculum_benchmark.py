@@ -161,8 +161,8 @@ class TestDataSplitting:
             + len(result["val_prefixes"])
             + len(result["test_prefixes"])
         )
-        # Should cover all 80 pairs (20 per procedure * 4 procedures)
-        assert total == 80
+        # Should cover all 120 pairs (20 per procedure * 6 procedures)
+        assert total == 120
 
     def test_split_reproducible(self, mock_dataset, tmp_path):
         from scripts.split_dataset import stratified_split
